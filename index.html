@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Royal Multi Gamers Launcher</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+</head>
+<body>
+    <div class="launcher">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="logo">
+                <img src="assets/placeholder-logo.svg" alt="Logo">
+            </div>
+            <ul class="nav-links">
+                <li class="active" data-tab="association">
+                    <i class="fas fa-home"></i>
+                    <span>Association</span>
+                </li>
+                <li data-tab="css">
+                    <i class="fas fa-crosshairs"></i>
+                    <span>Counter-Strike Source</span>
+                </li>
+                <li data-tab="csgo">
+                    <i class="fas fa-bullseye"></i>
+                    <span>CS:GO</span>
+                </li>
+                <li data-tab="eco">
+                    <i class="fas fa-leaf"></i>
+                    <span>ECO</span>
+                </li>
+                <li data-tab="battlebit">
+                    <i class="fas fa-gun"></i>
+                    <span>BattleBit</span>
+                </li>
+            </ul>
+            <div class="social-links">
+                <a href="#" class="discord-btn" data-url="https://discord.gg/tqPtgyk6yT">
+                    <i class="fab fa-discord"></i>
+                </a>
+                <a href="#" class="website-btn" data-url="https://clan-rmg.com">
+                    <i class="fas fa-globe"></i>
+                </a>
+            </div>
+        </nav>
+
+        <!-- Window Controls -->
+        <div class="window-controls">
+            <button id="minimize-btn"><i class="fas fa-window-minimize"></i></button>
+            <button id="maximize-btn"><i class="fas fa-window-maximize"></i></button>
+            <button id="close-btn"><i class="fas fa-times"></i></button>
+        </div>
+
+        <!-- Main Content Area -->
+        <main class="content">
+            <!-- Association Tab -->
+            <div class="tab-content active" id="association">
+                <header class="content-header">
+                    <h1>Bienvenue sur le launcher</h1>
+                    <div class="header-actions">
+                        <button class="btn discord-btn" data-url="https://discord.gg/tqPtgyk6yT">
+                            <i class="fab fa-discord"></i> Rejoindre Discord
+                        </button>
+                        <button class="btn website-btn" data-url="https://clan-rmg.com">
+                            <i class="fas fa-globe"></i> Site Web
+                        </button>
+                    </div>
+                </header>
+                <div class="news-grid">
+                    <!-- News will be dynamically inserted here -->
+                </div>
+            </div>
+
+            <!-- Counter-Strike Source Tab -->
+            <div class="tab-content" id="css">
+                <header class="content-header">
+                    <h1>Counter-Strike Source</h1>
+                    <div class="server-status">
+                        <span class="players-online">
+                            <i class="fas fa-users"></i>
+                            <span class="count">0</span> joueurs en ligne
+                        </span>
+                    </div>
+                </header>
+                <div class="server-status-container">
+                    <!-- Server status will be dynamically inserted here -->
+                </div>
+                <div class="news-grid">
+                    <!-- News will be dynamically inserted here -->
+                </div>
+            </div>
+
+            <!-- CS:GO Tab -->
+            <div class="tab-content" id="csgo">
+                <header class="content-header">
+                    <h1>Counter-Strike: Global Offensive</h1>
+                    <div class="server-status">
+                        <span class="players-online">
+                            <i class="fas fa-users"></i>
+                            <span class="count">0</span> joueurs en ligne
+                        </span>
+                    </div>
+                </header>
+                <div class="server-status-container">
+                    <!-- Server status will be dynamically inserted here -->
+                </div>
+                <div class="news-grid">
+                    <!-- News will be dynamically inserted here -->
+                </div>
+            </div>
+
+            <!-- ECO Tab -->
+            <div class="tab-content" id="eco">
+                <header class="content-header">
+                    <h1>ECO</h1>
+                    <div class="server-status">
+                        <span class="players-online">
+                            <i class="fas fa-users"></i>
+                            <span class="count">0</span> joueurs en ligne
+                        </span>
+                    </div>
+                </header>
+                <div class="server-status-container">
+                    <!-- Server status will be dynamically inserted here -->
+                </div>
+                <div class="news-grid">
+                    <!-- News will be dynamically inserted here -->
+                </div>
+            </div>
+
+            <!-- BattleBit Tab -->
+            <div class="tab-content" id="battlebit">
+                <header class="content-header">
+                    <h1>BattleBit Remastered</h1>
+                    <div class="server-status">
+                        <span class="players-online">
+                            <i class="fas fa-users"></i>
+                            <span class="count">0</span> joueurs en ligne
+                        </span>
+                    </div>
+                </header>
+                <div class="server-status-container">
+                    <!-- Server status will be dynamically inserted here -->
+                </div>
+                <div class="news-grid">
+                    <!-- News will be dynamically inserted here -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>

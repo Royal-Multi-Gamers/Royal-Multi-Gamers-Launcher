@@ -1,0 +1,52 @@
+{
+  "name": "game-association-launcher",
+  "version": "1.0.0",
+  "description": "Game Association Launcher - Similar to Blizzard Battle.net",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build": "electron-builder",
+    "build-win": "electron-builder --win",
+    "build-msix": "electron-builder --win --publish=never",
+    "dist": "npm run build"
+  },
+  "build": {
+    "appId": "com.gameassociation.launcher",
+    "productName": "Game Association Launcher",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "**/*",
+      "!node_modules/**/*",
+      "node_modules/electron/**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/icon.ico"
+    }
+  },
+  "keywords": [
+    "game",
+    "launcher",
+    "electron"
+  ],
+  "author": "Game Association",
+  "license": "MIT",
+  "devDependencies": {
+    "axios": "^1.10.0",
+    "electron": "^27.3.11",
+    "electron-builder": "^24.13.3"
+  },
+  "dependencies": {
+    "gamedig": "^5.3.1"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "articles": [
+    {
+      "id": 1,
+      "title": "Nouveau serveur AimDeathMatch disponible !",
+      "content": "Nous avons ajouté un nouveau serveur dédié à l'entraînement de votre aim ! Le serveur AimDeathMatch (aimdm.clan-rmg.com:27015) propose des cartes spécialement conçues pour améliorer votre précision et vos réflexes. Parfait pour s'échauffer avant les matchs compétitifs !",
+      "date": "2024-06-17T14:20:00Z",
+      "author": "Admin CSS",
+      "image": "https://fastdl.clan-rmg.com/launcher/images/css-aimdm.jpg"
+    },
+    {
+      "id": 2,
+      "title": "Serveur Poolparty DeathMatch - Nouvelles cartes",
+      "content": "Le serveur Poolparty DeathMatch a été mis à jour avec de nouvelles cartes communautaires ! Découvrez des environnements inédits et testez vos compétences sur ces nouveaux terrains de jeu. Le serveur est accessible via poolparty.clan-rmg.com:27015.",
+      "date": "2024-06-16T11:45:00Z",
+      "author": "Admin CSS",
+      "image": "https://fastdl.clan-rmg.com/launcher/images/css-poolparty.jpg"
+    },
+    {
+      "id": 3,
+      "title": "Serveur Antiroxx - Configuration optimisée",
+      "content": "Le serveur Antiroxx (antiroxx.clan-rmg.com:27015) a bénéficié d'une optimisation complète de sa configuration. Les paramètres de jeu ont été ajustés pour offrir une expérience plus équilibrée et compétitive. Venez tester ces améliorations !",
+      "date": "2024-06-15T16:30:00Z",
+      "author": "Admin CSS",
+      "image": "https://fastdl.clan-rmg.com/launcher/images/css-antiroxx.jpg"
+    }
+  ]
+}

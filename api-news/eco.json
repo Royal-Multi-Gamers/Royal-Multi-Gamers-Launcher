@@ -1,0 +1,28 @@
+{
+  "articles": [
+    {
+      "id": 1,
+      "title": "Serveur Nexus Life - Nouveau monde",
+      "content": "Le serveur ECO Nexus Life (46.105.167.16:3000) vient de lancer un nouveau monde ! C'est le moment idéal pour rejoindre l'aventure et participer à la construction d'une civilisation durable. Découvrez les nouveaux biomes et relevez le défi écologique !",
+      "date": "2024-06-17T09:00:00Z",
+      "author": "Admin ECO",
+      "image": "https://fastdl.clan-rmg.com/launcher/images/eco-world.jpg"
+    },
+    {
+      "id": 2,
+      "title": "Guide pour les nouveaux joueurs ECO",
+      "content": "Vous débutez sur ECO ? Nous avons préparé un guide complet pour vous aider à démarrer. Apprenez les bases de la survie, de l'écologie et de l'économie. Rejoignez notre communauté bienveillante qui sera ravie de vous guider dans vos premiers pas.",
+      "date": "2024-06-16T14:30:00Z",
+      "author": "Community Manager",
+      "image": "https://fastdl.clan-rmg.com/launcher/images/eco-guide.jpg"
+    },
+    {
+      "id": 3,
+      "title": "Événement construction collaborative",
+      "content": "Ce weekend, participez à notre grand événement de construction collaborative ! Ensemble, nous allons créer une ville durable et écologique. Apportez vos compétences et votre créativité pour ce projet communautaire unique.",
+      "date": "2024-06-15T11:20:00Z",
+      "author": "Admin ECO",
+      "image": "https://fastdl.clan-rmg.com/launcher/images/eco-event.jpg"
+    }
+  ]
+}

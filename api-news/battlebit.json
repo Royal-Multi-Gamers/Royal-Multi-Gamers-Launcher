@@ -1,0 +1,28 @@
+{
+  "articles": [
+    {
+      "id": 1,
+      "title": "Serveur BattleBit RMG maintenant disponible !",
+      "content": "Notre serveur BattleBit Remastered '[FR]Clan-RmG.com | ALL GAMEMODES' est maintenant en ligne ! Rejoignez-nous pour des batailles épiques avec jusqu'à 254 joueurs. Le serveur propose tous les modes de jeu disponibles dans BattleBit Remastered.",
+      "date": "2024-12-19T10:00:00Z",
+      "author": "Admin BattleBit",
+      "image": "https://fastdl.clan-rmg.com/launcher/images/battlebit-server.jpg"
+    },
+    {
+      "id": 2,
+      "title": "BattleBit Remastered - Guide de connexion",
+      "content": "Pour rejoindre notre serveur BattleBit, assurez-vous d'avoir Steam ouvert et BattleBit Remastered installé. Cliquez simplement sur 'Rejoindre' dans le launcher et Steam se chargera de lancer le jeu et de vous connecter automatiquement au serveur.",
+      "date": "2024-12-19T09:30:00Z",
+      "author": "Support Technique",
+      "image": "https://fastdl.clan-rmg.com/launcher/images/battlebit-guide.jpg"
+    },
+    {
+      "id": 3,
+      "title": "Modes de jeu disponibles sur notre serveur",
+      "content": "Notre serveur BattleBit propose une rotation de tous les modes de jeu : Conquest, Domination, Rush, Team Deathmatch, et bien plus encore ! Les cartes changent automatiquement pour offrir une expérience variée à tous les joueurs.",
+      "date": "2024-12-19T09:00:00Z",
+      "author": "Admin BattleBit",
+      "image": "https://fastdl.clan-rmg.com/launcher/images/battlebit-modes.jpg"
+    }
+  ]
+}
