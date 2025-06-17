@@ -148,7 +148,7 @@ function createWindow() {
                         const response = await axios.get('https://publicapi.battlebit.cloud/Servers/GetServerList', {
                             timeout: 5000,
                             headers: {
-                                'User-Agent': 'Game-Association-Launcher/1.0.0'
+                                'User-Agent': 'Royal-Multi-Gamers-Launcher/1.0.0'
                             }
                         });
 
@@ -236,7 +236,7 @@ function createWindow() {
             const response = await axios.get(newsUrl, { 
                 timeout: 5000,
                 headers: {
-                    'User-Agent': 'Game-Association-Launcher/1.0.0'
+                    'User-Agent': 'Royal-Multi-Gamers-Launcher/1.0.0'
                 }
             });
             

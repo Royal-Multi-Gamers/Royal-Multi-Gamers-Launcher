@@ -1,4 +1,4 @@
-# Guide d'installation - Game Association Launcher
+# Guide d'installation - Royal Multi Gamers Launcher
 
 ## Prérequis
 
@@ -55,9 +55,9 @@ npm run build-msix
 ## Structure des fichiers générés
 
 Après la construction, vous trouverez dans le dossier `dist` :
-- `Game Association Launcher Setup.exe` : Installateur Windows
-- `Game Association Launcher.exe` : Exécutable portable
-- `Game Association Launcher.appx` : Package MSIX pour Microsoft Store
+- `Royal Multi Gamers Launcher Setup.exe` : Installateur Windows
+- `Royal Multi Gamers Launcher.exe` : Exécutable portable
+- `Royal Multi Gamers Launcher.appx` : Package MSIX pour Microsoft Store
 
 ## Configuration personnalisée
 

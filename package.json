@@ -1,37 +1,76 @@
 {
-  "name": "game-association-launcher",
+  "name": "royal-multi-gamers-launcher",
   "version": "1.0.0",
-  "description": "Game Association Launcher - Similar to Blizzard Battle.net",
+  "description": "Royal Multi Gamers Launcher - Association sous loi 1901",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
     "dev": "electron . --dev",
     "build": "electron-builder",
     "build-win": "electron-builder --win",
-    "build-msix": "electron-builder --win --publish=never",
+    "build-msix": "electron-builder --win --config.win.target=appx",
+    "build-store": "electron-builder --win --config.win.target=appx --publish=never",
     "dist": "npm run build"
   },
   "build": {
-    "appId": "com.gameassociation.launcher",
-    "productName": "Game Association Launcher",
+    "appId": "com.royalmultigamers.launcher",
+    "productName": "Royal Multi Gamers Launcher",
+    "copyright": "Copyright © 2025 Royal Multi Gamers Association sous loi 1901",
     "directories": {
       "output": "dist"
     },
+    "electronVersion": "27.3.11",
     "files": [
       "**/*",
-      "!node_modules/**/*",
-      "node_modules/electron/**/*"
+      "!.git/**/*",
+      "!.gitignore",
+      "!README.md",
+      "!INSTALLATION.md",
+      "!PROJECT_SUMMARY.md",
+      "!build-simple.bat",
+      "!start.bat"
     ],
+    "asar": true,
     "win": {
       "target": [
         {
-          "target": "portable",
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "appx",
           "arch": [
             "x64"
           ]
         }
       ],
-      "icon": "assets/icon.ico"
+      "icon": "assets/icon.ico",
+      "publisherName": "Royal Multi Gamers Launcher",
+      "requestedExecutionLevel": "asInvoker",
+      "artifactName": "${productName}-${version}-${arch}.${ext}"
+    },
+    "appx": {
+      "applicationId": "RoyalMultiGamersLauncher",
+      "identityName": "RoyalMultiGamers.RoyalMultiGamersLauncher",
+      "publisher": "CN=359560CF-9C8F-4494-AD16-95ACF1FE0AD4",
+      "publisherDisplayName": "Royal Multi Gamers",
+      "backgroundColor": "#1a1a1a",
+      "showNameOnTiles": true,
+      "languages": [
+        "fr-FR",
+        "en-US"
+      ],
+      "addAutoLaunchExtension": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Royal Multi Gamers Launcher",
+      "include": "build/installer.nsh"
     }
   },
   "keywords": [
@@ -39,14 +78,14 @@
     "launcher",
     "electron"
   ],
-  "author": "Game Association",
+  "author": "Royal Multi Gamers",
   "license": "MIT",
   "devDependencies": {
-    "axios": "^1.10.0",
     "electron": "^27.3.11",
     "electron-builder": "^24.13.3"
   },
   "dependencies": {
+    "axios": "^1.10.0",
     "gamedig": "^5.3.1"
   }
 }

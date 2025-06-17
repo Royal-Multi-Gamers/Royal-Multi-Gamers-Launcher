@@ -1,8 +1,8 @@
-# Résumé du Projet - Game Association Launcher
+# Résumé du Projet - Royal Multi Gamers Launcher
 
 ## Vue d'ensemble
 
-Ce projet est un launcher de jeux moderne développé avec Electron, inspiré du design de Battle.net de Blizzard. Il est destiné à une association de jeux vidéo et permet de gérer facilement l'accès à plusieurs serveurs de jeux.
+Ce projet est un launcher de jeux moderne développé avec Electron. Il est destiné à une association de jeux vidéo et permet de gérer facilement l'accès à plusieurs serveurs de jeux.
 
 ## Technologies utilisées
 

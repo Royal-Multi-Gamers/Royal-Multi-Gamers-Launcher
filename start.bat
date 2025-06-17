@@ -1,5 +1,5 @@
 @echo off
-echo Lancement du Game Association Launcher...
+echo Lancement du Royal Multi Gamers Launcher...
 echo.
 
 REM Vérifier si Node.js est installé

@@ -1,5 +1,5 @@
 @echo off
-echo Building Game Association Launcher...
+echo Building Royal Multi Gamers Launcher...
 echo.
 
 REM Install electron-builder if not already installed

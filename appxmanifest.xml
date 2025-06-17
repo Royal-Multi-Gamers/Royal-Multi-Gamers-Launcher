@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+         xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+         xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities">
+  <Identity Name="RoyalMultiGamers.RoyalMultiGamersLauncher"
+            Publisher="CN=359560CF-9C8F-4494-AD16-95ACF1FE0AD4"
+            Version="1.0.0.0" />
+  
+  <Properties>
+    <DisplayName>Royal Multi Gamers Launcher</DisplayName>
+    <PublisherDisplayName>Royal Multi Gamers</PublisherDisplayName>
+    <Logo>assets\logo.png</Logo>
+    <Description>Royal Multi Gamers Launcher - Association sous loi 1901</Description>
+  </Properties>
+  
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.17763.0" MaxVersionTested="10.0.22000.0" />
+  </Dependencies>
+  
+  <Capabilities>
+    <Capability Name="internetClient" />
+    <rescap:Capability Name="runFullTrust" />
+  </Capabilities>
+  
+  <Applications>
+    <Application Id="RoyalMultiGamersLauncher" Executable="Royal Multi Gamers Launcher.exe" EntryPoint="Windows.FullTrustApplication">
+      <uap:VisualElements DisplayName="Royal Multi Gamers Launcher"
+                          Description="Royal Multi Gamers Launcher - Association sous loi 1901"
+                          BackgroundColor="#1a1a1a"
+                          Square150x150Logo="assets\logo.png"
+                          Square44x44Logo="assets\icon.ico">
+        <uap:DefaultTile Wide310x150Logo="assets\logo.png" />
+      </uap:VisualElements>
+    </Application>
+  </Applications>
+</Package>

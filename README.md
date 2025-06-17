@@ -1,4 +1,4 @@
-# Game Association Launcher
+# Royal Multi Gamers Launcher
 
 Un launcher de jeux moderne inspiré de Battle.net pour une association de jeux vidéo.
 
