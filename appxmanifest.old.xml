@@ -9,7 +9,7 @@
   <Properties>
     <DisplayName>Royal Multi Gamers Launcher</DisplayName>
     <PublisherDisplayName>Royal Multi Gamers</PublisherDisplayName>
-    <Logo>assets\logo.png</Logo>
+    <Logo>assets\StoreLogo.png</Logo>
     <Description>Royal Multi Gamers Launcher - Association sous loi 1901</Description>
   </Properties>
   
@@ -27,9 +27,9 @@
       <uap:VisualElements DisplayName="Royal Multi Gamers Launcher"
                           Description="Royal Multi Gamers Launcher - Association sous loi 1901"
                           BackgroundColor="#1a1a1a"
-                          Square150x150Logo="assets\logo.png"
-                          Square44x44Logo="assets\icon.ico">
-        <uap:DefaultTile Wide310x150Logo="assets\logo.png" />
+                          Square150x150Logo="assets\Square150x150Logo.png"
+                          Square44x44Logo="assets\Square44x44Logo.png">
+        <uap:DefaultTile Wide310x150Logo="assets\Wide310x150Logo.png" />
       </uap:VisualElements>
     </Application>
   </Applications>

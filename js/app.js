@@ -1,5 +1,12 @@
 class GameLauncher {
     constructor() {
+        // Add loading state management
+        this.loadingTasks = {
+            fontAwesome: false,
+            serverStatus: false,
+            news: false
+        };
+        
         this.currentTab = 'association';
         this.servers = {
             css: [
@@ -62,8 +69,111 @@ class GameLauncher {
 
         this.initializeUI();
         this.setupEventListeners();
-        this.startServerStatusUpdates();
-        this.updateNews();
+        this.initializeApp();
+    }
+
+    async initializeApp() {
+        try {
+            // Wait for Font Awesome to load
+            await this.waitForFontAwesome();
+            this.loadingTasks.fontAwesome = true;
+
+            // Ensure electronAPI is available
+            await this.waitForElectronAPI();
+            
+            // Start server status updates and news fetching in parallel
+            await Promise.all([
+                this.startServerStatusUpdates().then(() => {
+                    this.loadingTasks.serverStatus = true;
+                }),
+                this.updateNews().then(() => {
+                    this.loadingTasks.news = true;
+                })
+            ]);
+
+            this.checkLoadingComplete();
+        } catch (error) {
+            console.error('Initialization error:', error);
+            // Show error in loading overlay
+            const loadingSpinner = document.querySelector('.loading-spinner');
+            if (loadingSpinner) {
+                loadingSpinner.innerHTML = `
+                    <i class="fas fa-exclamation-circle"></i>
+                    <div style="margin-top: 10px; font-size: 14px;">
+                        Erreur de chargement. Veuillez redémarrer l'application.
+                    </div>
+                `;
+            }
+        }
+    }
+
+    waitForElectronAPI() {
+        return new Promise((resolve) => {
+            const check = () => {
+                if (window.electronAPI) {
+                    resolve();
+                } else {
+                    setTimeout(check, 50);
+                }
+            };
+            check();
+        });
+    }
+
+    async waitForFontAwesome() {
+        return new Promise((resolve) => {
+            // Check if Font Awesome is already loaded
+            if (document.fonts && document.fonts.ready) {
+                document.fonts.ready.then(() => {
+                    // Additional check for Font Awesome specifically
+                    const testElement = document.createElement('i');
+                    testElement.className = 'fas fa-home';
+                    testElement.style.position = 'absolute';
+                    testElement.style.left = '-9999px';
+                    document.body.appendChild(testElement);
+                    
+                    const checkFont = () => {
+                        const computedStyle = window.getComputedStyle(testElement, ':before');
+                        if (computedStyle.content && computedStyle.content !== 'none') {
+                            document.body.removeChild(testElement);
+                            resolve();
+                        } else {
+                            setTimeout(checkFont, 50);
+                        }
+                    };
+                    
+                    setTimeout(checkFont, 100);
+                });
+            } else {
+                // Fallback for older browsers
+                setTimeout(resolve, 500);
+            }
+        });
+    }
+
+    checkLoadingComplete() {
+        const allTasksComplete = Object.values(this.loadingTasks).every(task => task === true);
+        
+        if (allTasksComplete) {
+            this.hideLoadingOverlay();
+        }
+    }
+
+    hideLoadingOverlay() {
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const body = document.body;
+        
+        if (loadingOverlay) {
+            loadingOverlay.classList.add('hidden');
+            body.classList.add('loaded');
+            
+            // Remove the overlay from DOM after transition
+            setTimeout(() => {
+                if (loadingOverlay.parentNode) {
+                    loadingOverlay.parentNode.removeChild(loadingOverlay);
+                }
+            }, 300);
+        }
     }
 
     initializeUI() {

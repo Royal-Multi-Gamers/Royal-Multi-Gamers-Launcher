@@ -14,7 +14,9 @@ function createWindow() {
         webPreferences: {
             nodeIntegration: false,
             contextIsolation: true,
-            preload: path.join(__dirname, 'preload.js')
+            preload: path.join(__dirname, 'preload.js'),
+            backgroundThrottling: false,
+            paintWhenInitiallyHidden: true
         },
         frame: false,
         titleBarStyle: 'hidden',
@@ -25,8 +27,11 @@ function createWindow() {
 
     mainWindow.loadFile('index.html');
 
-    mainWindow.once('ready-to-show', () => {
-        mainWindow.show();
+    // Show window after a slight delay to ensure proper initialization
+    mainWindow.webContents.once('did-finish-load', () => {
+        setTimeout(() => {
+            mainWindow.show();
+        }, 100);
     });
 
     // Window controls
