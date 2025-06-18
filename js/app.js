@@ -155,7 +155,12 @@ class GameLauncher {
         const allTasksComplete = Object.values(this.loadingTasks).every(task => task === true);
         
         if (allTasksComplete) {
-            this.hideLoadingOverlay();
+            // Ensure all DOM updates are complete before hiding overlay
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    this.hideLoadingOverlay();
+                });
+            });
         }
     }
 
@@ -164,15 +169,22 @@ class GameLauncher {
         const body = document.body;
         
         if (loadingOverlay) {
+            // Ensure smooth transition by forcing a layout
+            body.style.transform = 'translateZ(0)';
+            void(body.offsetHeight); // Force reflow
+            
+            // Start the transition
             loadingOverlay.classList.add('hidden');
             body.classList.add('loaded');
             
-            // Remove the overlay from DOM after transition
+            // Remove the overlay from DOM after transition completes
             setTimeout(() => {
                 if (loadingOverlay.parentNode) {
                     loadingOverlay.parentNode.removeChild(loadingOverlay);
                 }
-            }, 300);
+                // Clean up transform
+                body.style.transform = '';
+            }, 500); // Match the CSS transition duration
         }
     }
 

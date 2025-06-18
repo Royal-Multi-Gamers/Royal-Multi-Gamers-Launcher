@@ -18,14 +18,21 @@
     box-sizing: border-box;
 }
 
+html, body {
+    background-color: var(--background-dark);
+}
+
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: var(--background-dark);
     color: var(--text-color);
     height: 100vh;
     overflow: hidden;
     opacity: 0;
-    transition: opacity 0.3s ease-in-out;
+    transition: opacity 0.5s ease-in-out;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000;
+    will-change: opacity;
 }
 
 body.loaded {
@@ -44,12 +51,17 @@ body.loaded {
     align-items: center;
     z-index: 9999;
     opacity: 1;
-    transition: opacity 0.3s ease-in-out;
+    transition: opacity 0.5s ease-in-out;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000;
+    will-change: opacity, transform;
 }
 
 .loading-overlay.hidden {
     opacity: 0;
     pointer-events: none;
+    visibility: hidden;
 }
 
 .loading-spinner {

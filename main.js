@@ -16,22 +16,53 @@ function createWindow() {
             contextIsolation: true,
             preload: path.join(__dirname, 'preload.js'),
             backgroundThrottling: false,
-            paintWhenInitiallyHidden: true
+            paintWhenInitiallyHidden: true,
+            backgroundColor: '#1a1a1a',
+            hardwareAcceleration: true
         },
         frame: false,
         titleBarStyle: 'hidden',
         icon: path.join(__dirname, 'assets', 'icon.ico'),
         show: false,
-        backgroundColor: '#1a1a1a'
+        backgroundColor: '#1a1a1a',
+        // Improve window performance
+        hasShadow: false,
+        transparent: false
     });
+
+    // Disable background throttling when window is hidden
+    mainWindow.webContents.setBackgroundThrottling(false);
 
     mainWindow.loadFile('index.html');
 
-    // Show window after a slight delay to ensure proper initialization
+    // Wait for both did-finish-load and dom-ready before showing the window
+    let didFinishLoad = false;
+    let domReady = false;
+
+    const tryShowWindow = () => {
+        if (didFinishLoad && domReady) {
+            // Reduced delay and ensure window is ready
+            setTimeout(() => {
+                if (!mainWindow.isDestroyed()) {
+                    mainWindow.show();
+                    // Force a repaint to ensure smooth transition
+                    mainWindow.webContents.executeJavaScript(`
+                        document.body.style.transform = 'translateZ(0)';
+                        void(document.body.offsetHeight);
+                    `);
+                }
+            }, 300);
+        }
+    };
+
     mainWindow.webContents.once('did-finish-load', () => {
-        setTimeout(() => {
-            mainWindow.show();
-        }, 100);
+        didFinishLoad = true;
+        tryShowWindow();
+    });
+
+    mainWindow.webContents.once('dom-ready', () => {
+        domReady = true;
+        tryShowWindow();
     });
 
     // Window controls
