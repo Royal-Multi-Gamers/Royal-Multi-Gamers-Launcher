@@ -401,6 +401,11 @@ class GameLauncher {
                             };
                         }
                         
+                        // Sort articles by id descending if id exists
+                        if (newsData.articles && newsData.articles.length > 0 && newsData.articles[0].id !== undefined) {
+                            newsData.articles.sort((a, b) => b.id - a.id);
+                        }
+                        
                         this.updateNewsUI(category, newsData);
                     } catch (parseError) {
                         console.warn(`Failed to parse news for ${category}:`, parseError);
