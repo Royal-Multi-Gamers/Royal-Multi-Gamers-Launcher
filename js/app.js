@@ -4,7 +4,8 @@ class GameLauncher {
         this.loadingTasks = {
             fontAwesome: false,
             serverStatus: false,
-            news: false
+            news: false,
+            gameDig: false
         };
         
         this.currentTab = 'association';
@@ -90,17 +91,16 @@ class GameLauncher {
 
     async initializeApp() {
         try {
-            // Wait for Font Awesome to load
-            await this.waitForFontAwesome();
-            this.loadingTasks.fontAwesome = true;
-
-            // Ensure electronAPI is available
+            // Ensure electronAPI is available first
             await this.waitForElectronAPI();
             
-            // Start server status updates and news fetching in parallel
+            // Initialize GameDig requests immediately
+            this.initializeGameDig();
+            
+            // Wait for Font Awesome and start other tasks in parallel
             await Promise.all([
-                this.startServerStatusUpdates().then(() => {
-                    this.loadingTasks.serverStatus = true;
+                this.waitForFontAwesome().then(() => {
+                    this.loadingTasks.fontAwesome = true;
                 }),
                 this.updateNews().then(() => {
                     this.loadingTasks.news = true;
@@ -256,10 +256,22 @@ class GameLauncher {
         this.currentTab = tabId;
     }
 
-    async startServerStatusUpdates() {
-        await this.updateServerStatus();
-        // Update server status every 30 seconds
-        setInterval(() => this.updateServerStatus(), 30000);
+    async initializeGameDig() {
+        try {
+            // Initial server status update
+            await this.updateServerStatus();
+            this.loadingTasks.gameDig = true;
+            this.loadingTasks.serverStatus = true;
+            
+            // Start periodic updates after initial load
+            setInterval(() => this.updateServerStatus(), 30000);
+            
+            this.checkLoadingComplete();
+        } catch (error) {
+            console.error('Error initializing GameDig:', error);
+            // Retry after 5 seconds if initial request fails
+            setTimeout(() => this.initializeGameDig(), 5000);
+        }
     }
 
     async updateServerStatus() {
@@ -283,6 +295,12 @@ class GameLauncher {
         if (!statusContainer) {
             statusContainer = document.createElement('div');
             statusContainer.className = 'server-status-container';
+            
+            // Add loading indicator
+            const loadingIndicator = document.createElement('div');
+            loadingIndicator.className = 'server-loading';
+            loadingIndicator.innerHTML = '<i class="fas fa-sync fa-spin"></i> Chargement des statuts...';
+            statusContainer.appendChild(loadingIndicator);
             
             // Insert after header
             const header = tabContent.querySelector('.content-header');

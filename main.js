@@ -232,10 +232,11 @@ function createWindow() {
                         const state = await GameDig.query({
                             type: server.type,
                             host: server.ip,
-                            port: parseInt(server.queryPort || server.port), // Use queryPort if available, fallback to port
-                            maxAttempts: 2,
-                            socketTimeout: 2000,
-                            attemptTimeout: 3000
+                            port: parseInt(server.queryPort || server.port),
+                            maxAttempts: 1, // Reduced for faster initial load
+                            socketTimeout: 1500, // Reduced timeout for faster response
+                            attemptTimeout: 2000, // Reduced timeout for faster response
+                            givenPortOnly: true // Only query the specified port
                         });
 
                         results[gameType].push({
