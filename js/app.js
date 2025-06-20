@@ -14,6 +14,7 @@ class GameLauncher {
                     name: 'Serveur Poolparty DeathMatch',
                     ip: '91.121.50.47',
                     port: '27015',
+                    queryPort: '27015',
                     type: 'css',
                     protocol: 'source'
                 },
@@ -21,6 +22,7 @@ class GameLauncher {
                     name: 'Serveur Antiroxx',
                     ip: '46.105.167.16',
                     port: '27015',
+                    queryPort: '27015',
                     type: 'css',
                     protocol: 'source'
                 },
@@ -28,6 +30,7 @@ class GameLauncher {
                     name: 'Serveur AimDeathMatch',
                     ip: '46.105.167.18',
                     port: '27015',
+                    queryPort: '27015',
                     type: 'css',
                     protocol: 'source'
                 }
@@ -37,6 +40,7 @@ class GameLauncher {
                     name: 'Serveur PooLparty DeathMatch',
                     ip: '46.105.167.17',
                     port: '27015',
+                    queryPort: '27015',
                     type: 'csgo',
                     protocol: 'csgo'
                 }
@@ -46,8 +50,19 @@ class GameLauncher {
                     name: 'Serveur Nexus Life',
                     ip: '46.105.167.16',
                     port: '3000',
+                    queryPort: '3001',
                     type: 'eco',
                     protocol: 'eco'
+                }
+            ],
+            rust: [
+                {
+                    name: 'Serveur Nexus Life',
+                    ip: '46.105.167.17',
+                    port: '27030',
+                    queryPort: '27031',
+                    type: 'rust',
+                    protocol: 'rust'
                 }
             ],
             battlebit: [
@@ -64,6 +79,7 @@ class GameLauncher {
             css: 'https://fastdl.clan-rmg.com/launcher/news/css.json',
             csgo: 'https://fastdl.clan-rmg.com/launcher/news/csgo.json',
             eco: 'https://fastdl.clan-rmg.com/launcher/news/eco.json',
+            rust: 'https://fastdl.clan-rmg.com/launcher/news/rust.json',
             battlebit: 'https://fastdl.clan-rmg.com/launcher/news/battlebit.json'
         };
 

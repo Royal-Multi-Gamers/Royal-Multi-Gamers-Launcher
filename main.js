@@ -96,13 +96,13 @@ function createWindow() {
                     await GameDig.query({
                         type: gameType,
                         host: ip,
-                        port: parseInt(port),
+                        port: parseInt(serverInfo.queryPort || port), // Use queryPort if available, fallback to port
                         maxAttempts: 1,
                         socketTimeout: 2000,
                         attemptTimeout: 3000
                     });
                 } catch (queryError) {
-                    console.warn(`Server ${ip}:${port} may be offline, but attempting connection anyway`);
+                    console.warn(`Server ${ip}:${serverInfo.queryPort || port} may be offline, but attempting connection anyway`);
                 }
             }
 
@@ -143,7 +143,7 @@ function createWindow() {
             const state = await GameDig.query({
                 type: type,
                 host: ip,
-                port: parseInt(port),
+                port: parseInt(serverInfo.queryPort || port), // Use queryPort if available, fallback to port
                 maxAttempts: 2,
                 socketTimeout: 2000,
                 attemptTimeout: 3000
@@ -158,7 +158,7 @@ function createWindow() {
                 ping: state.ping || 0
             };
         } catch (error) {
-            console.error(`Error checking server ${serverInfo.ip}:${serverInfo.port}:`, error.message);
+            console.error(`Error checking server ${serverInfo.ip}:${serverInfo.queryPort || serverInfo.port}:`, error.message);
             return {
                 online: false,
                 players: 0,
@@ -232,7 +232,7 @@ function createWindow() {
                         const state = await GameDig.query({
                             type: server.type,
                             host: server.ip,
-                            port: parseInt(server.port),
+                            port: parseInt(server.queryPort || server.port), // Use queryPort if available, fallback to port
                             maxAttempts: 2,
                             socketTimeout: 2000,
                             attemptTimeout: 3000
@@ -248,7 +248,7 @@ function createWindow() {
                             ping: state.ping || 0
                         });
                     } catch (error) {
-                        console.error(`Error checking server ${server.ip}:${server.port}:`, error.message);
+                        console.error(`Error checking server ${server.ip}:${server.queryPort || server.port}:`, error.message);
                         results[gameType].push({
                             ...server,
                             online: false,
