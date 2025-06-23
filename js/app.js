@@ -495,12 +495,12 @@ class GameLauncher {
                     author: 'Admin CSS'
                 }
             ],
-            csgo: [
+            cs2: [
                 { 
-                    title: 'Serveur CS:GO PooLparty actif', 
+                    title: 'Serveur CS2 PoolParty actif', 
                     content: 'Le serveur Counter-Strike: Global Offensive PooLparty DeathMatch est en ligne. Venez montrer vos compétences !', 
                     date: new Date().toISOString(),
-                    author: 'Admin CS:GO'
+                    author: 'Admin CS2'
                 }
             ],
             eco: [
