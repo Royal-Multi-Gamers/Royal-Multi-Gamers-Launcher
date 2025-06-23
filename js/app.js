@@ -401,9 +401,9 @@ class GameLauncher {
                             };
                         }
                         
-                        // Sort articles by id descending if id exists
-                        if (newsData.articles && newsData.articles.length > 0 && newsData.articles[0].id !== undefined) {
-                            newsData.articles.sort((a, b) => b.id - a.id);
+                        // Sort articles by date descending if date exists
+                        if (newsData.articles && newsData.articles.length > 0 && newsData.articles[0].date !== undefined) {
+                            newsData.articles.sort((a, b) => new Date(b.date) - new Date(a.date));
                         }
                         
                         this.updateNewsUI(category, newsData);
