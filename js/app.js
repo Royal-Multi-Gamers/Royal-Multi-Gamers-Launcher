@@ -36,7 +36,7 @@ class GameLauncher {
                     protocol: 'source'
                 }
             ],
-            csgo: [
+            cs2: [
                 {
                     name: 'Serveur PooLparty DeathMatch',
                     ip: '46.105.167.17',
@@ -78,7 +78,7 @@ class GameLauncher {
         this.newsUrls = {
             association: 'https://fastdl.clan-rmg.com/launcher/news/association.json',
             css: 'https://fastdl.clan-rmg.com/launcher/news/css.json',
-            csgo: 'https://fastdl.clan-rmg.com/launcher/news/csgo.json',
+            cs2: 'https://fastdl.clan-rmg.com/launcher/news/csgo.json',
             eco: 'https://fastdl.clan-rmg.com/launcher/news/eco.json',
             rust: 'https://fastdl.clan-rmg.com/launcher/news/rust.json',
             battlebit: 'https://fastdl.clan-rmg.com/launcher/news/battlebit.json'
@@ -517,6 +517,14 @@ class GameLauncher {
                     content: 'Notre serveur BattleBit Remastered est maintenant disponible ! Rejoignez "[FR]Clan-RmG.com | ALL GAMEMODES" pour des batailles épiques avec la communauté RMG.',
                     date: new Date().toISOString(),
                     author: 'Admin BattleBit'
+                }
+            ],
+            eco: [
+                { 
+                    title: 'Serveur Rust Nexus disponible', 
+                    content: 'Découvrez Rust sur notre serveur Nexus. Construisez et survivre !', 
+                    date: new Date().toISOString(),
+                    author: 'Admin Rust'
                 }
             ]
         };
