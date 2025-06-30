@@ -14,6 +14,11 @@ class GameLauncher {
         this.loadingTasks = new Set(['fontAwesome', 'serverStatus', 'news', 'config']);
         this.domCache = new Map();
         this.newsUrls = new Map();
+        this.isInitializing = true;
+        this.serverDataCache = new Map();
+
+        // Add initializing class to body to prevent visual flashing
+        document.body.classList.add('initializing');
 
         this.initializeUI();
         this.setupEventListeners();
@@ -89,13 +94,11 @@ class GameLauncher {
     }
 
     async createTabsUI(tabs) {
-        // Clear existing tabs
-        const navLinks = document.querySelector('.nav-links');
-        const mainContent = document.querySelector('main.content');
-        navLinks.innerHTML = '';
-        mainContent.innerHTML = '';
+        // Create document fragments to build UI off-screen
+        const navFragment = document.createDocumentFragment();
+        const contentFragment = document.createDocumentFragment();
 
-        // Create new tabs
+        // Build tabs in memory first
         tabs.forEach(tab => {
             // Create sidebar tab
             const li = document.createElement('li');
@@ -105,7 +108,7 @@ class GameLauncher {
                 <i class="fas fa-${tab.icon}"></i>
                 <span>${tab.name}</span>
             `;
-            navLinks.appendChild(li);
+            navFragment.appendChild(li);
 
             // Create content section
             const content = document.createElement('div');
@@ -126,11 +129,29 @@ class GameLauncher {
                 ${tab.servers && tab.servers.length > 0 ? '<div class="server-status-container"></div>' : ''}
                 <div class="news-grid"></div>
             `;
-            mainContent.appendChild(content);
+            contentFragment.appendChild(content);
         });
 
-        // Reattach event listeners
-        this.setupEventListeners();
+        // Use requestAnimationFrame to batch DOM updates
+        return new Promise(resolve => {
+            requestAnimationFrame(() => {
+                const navLinks = document.querySelector('.nav-links');
+                const mainContent = document.querySelector('main.content');
+                
+                // Clear and update in a single operation
+                navLinks.innerHTML = '';
+                mainContent.innerHTML = '';
+                
+                // Append all at once to minimize reflows
+                navLinks.appendChild(navFragment);
+                mainContent.appendChild(contentFragment);
+
+                // Reattach event listeners
+                this.setupEventListeners();
+                
+                resolve();
+            });
+        });
     }
 
     async initializeApp() {
@@ -233,6 +254,9 @@ class GameLauncher {
         const body = document.body;
         
         if (loadingOverlay) {
+            // Mark initialization as complete
+            this.isInitializing = false;
+            
             // Ensure smooth transition by forcing a layout
             body.style.transform = 'translateZ(0)';
             void(body.offsetHeight); // Force reflow
@@ -240,6 +264,7 @@ class GameLauncher {
             // Start the transition
             loadingOverlay.classList.add('hidden');
             body.classList.add('loaded');
+            body.classList.remove('initializing');
             
             // Remove the overlay from DOM after transition completes
             setTimeout(() => {
@@ -248,6 +273,8 @@ class GameLauncher {
                 }
                 // Clean up transform
                 body.style.transform = '';
+                
+                console.log('Application initialization complete - visual flashing eliminated');
             }, 500); // Match the CSS transition duration
         }
     }
@@ -344,12 +371,6 @@ class GameLauncher {
             statusContainer = document.createElement('div');
             statusContainer.className = 'server-status-container';
             
-            // Add loading indicator
-            const loadingIndicator = document.createElement('div');
-            loadingIndicator.className = 'server-loading';
-            loadingIndicator.innerHTML = '<i class="fas fa-sync fa-spin"></i> Chargement des statuts...';
-            statusContainer.appendChild(loadingIndicator);
-            
             // Insert after header
             const header = tabContent.querySelector('.content-header');
             if (header) {
@@ -359,15 +380,17 @@ class GameLauncher {
             }
         }
 
-        // Clear existing content
-        statusContainer.innerHTML = '';
+        // Create fragment for new content
+        const fragment = document.createDocumentFragment();
+        const newStatusContainer = document.createElement('div');
+        newStatusContainer.className = 'server-status-container';
 
-        // Add servers
-        servers.forEach((server, index) => {
+        // Add servers to fragment
+        servers.forEach((server) => {
             const serverElement = document.createElement('div');
             serverElement.className = `server-item ${server.online ? 'online' : 'offline'}`;
             
-                serverElement.innerHTML = `
+            serverElement.innerHTML = `
                 <div class="server-info">
                     <h3 class="server-name">${server.name}</h3>
                     <div class="server-details">
@@ -391,7 +414,7 @@ class GameLauncher {
                 </button>
             `;
             
-            statusContainer.appendChild(serverElement);
+            newStatusContainer.appendChild(serverElement);
         });
 
         // Update total player count in header
@@ -401,8 +424,23 @@ class GameLauncher {
             headerPlayerCount.textContent = totalPlayers;
         }
 
-        // Re-setup play buttons
-        this.setupPlayButtons();
+        // Use requestAnimationFrame for smooth transition
+        requestAnimationFrame(() => {
+            // Add updating class to fade out old content
+            statusContainer.classList.add('updating');
+            
+            // After fade out, update content
+            setTimeout(() => {
+                // Replace content
+                statusContainer.innerHTML = newStatusContainer.innerHTML;
+                
+                // Remove updating class to fade in new content
+                statusContainer.classList.remove('updating');
+                
+                // Re-setup play buttons after content is updated
+                this.setupPlayButtons();
+            }, 300); // Match the CSS transition duration
+        });
     }
 
     setupPlayButtons() {
@@ -523,14 +561,8 @@ class GameLauncher {
         const fallbackNews = {
             offline: [
                 { 
-                    title: 'Launcher en mode hors ligne', 
-                    content: 'Le launcher fonctionne actuellement en mode hors ligne. La configuration des serveurs et les actualités ne peuvent pas être chargées depuis le serveur distant. Vérifiez votre connexion internet et redémarrez l\'application.', 
-                    date: new Date().toISOString(),
-                    author: 'Système'
-                },
-                { 
-                    title: 'Fonctionnalités limitées', 
-                    content: 'En mode hors ligne, certaines fonctionnalités peuvent être indisponibles. Pour accéder à tous les serveurs et actualités, une connexion internet est requise.', 
+                    title: 'Erreur de connexion', 
+                    content: 'Impossible de charger les actualités. Veuillez vérifier votre connexion internet et réessayer.', 
                     date: new Date().toISOString(),
                     author: 'Système'
                 }

@@ -23,13 +23,16 @@ const CONFIG = {
 
 let mainWindow;
 
+// Disable GPU acceleration to prevent crashes
+app.disableHardwareAcceleration();
+
 function createWindow() {
     mainWindow = new BrowserWindow({
         ...CONFIG.window,
         webPreferences: {
             nodeIntegration: false, contextIsolation: true,
             preload: path.join(__dirname, 'preload.js'),
-            backgroundThrottling: false, hardwareAcceleration: true
+            backgroundThrottling: false, hardwareAcceleration: false
         },
         icon: path.join(__dirname, 'assets', 'icon.ico')
     });
@@ -44,7 +47,8 @@ function createWindow() {
             setTimeout(() => {
                 if (!mainWindow.isDestroyed()) {
                     mainWindow.show();
-                    mainWindow.webContents.executeJavaScript('document.body.style.transform="translateZ(0)";void(document.body.offsetHeight);');
+                    // Force a reflow without GPU acceleration
+                    mainWindow.webContents.executeJavaScript('void(document.body.offsetHeight);');
                 }
             }, 300);
         }
@@ -121,7 +125,7 @@ function setupIPCHandlers() {
             console.error('News fetch error:', error.message);
             return {
                 success: true,
-                data: { articles: [{ title: 'Chargement des news...', content: 'Les actualités seront bientôt disponibles.', date: new Date().toISOString(), author: 'Système' }] }
+                data: { articles: [{ title: 'Erreur de connexion', content: 'Impossible de charger les actualités. Veuillez vérifier votre connexion internet et réessayer.', date: new Date().toISOString(), author: 'Système' }] }
             };
         }
     });
