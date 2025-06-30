@@ -1,0 +1,95 @@
+{
+  "tabs": [
+    {
+      "id": "association",
+      "name": "Association",
+      "icon": "home",
+      "servers": [],
+      "isDefault": true
+    },
+    {
+      "id": "css",
+      "name": "Counter-Strike Source",
+      "icon": "crosshairs",
+      "servers": [
+        {
+          "name": "Serveur Poolparty DeathMatch",
+          "ip": "91.121.50.47",
+          "port": "27015",
+          "type": "css",
+          "protocol": "source"
+        },
+        {
+          "name": "Serveur Antiroxx",
+          "ip": "46.105.167.16",
+          "port": "27015",
+          "type": "css",
+          "protocol": "source"
+        },
+        {
+          "name": "Serveur AimDeathMatch",
+          "ip": "46.105.167.18",
+          "port": "27015",
+          "type": "css",
+          "protocol": "source"
+        }
+      ]
+    },
+    {
+      "id": "cs2",
+      "name": "Counter-Strike 2",
+      "icon": "bullseye",
+      "servers": [
+        {
+          "name": "Serveur PooLparty DeathMatch",
+          "ip": "46.105.167.17",
+          "port": "27015",
+          "type": "csgo",
+          "protocol": "csgo"
+        }
+      ]
+    },
+    {
+      "id": "eco",
+      "name": "ECO",
+      "icon": "leaf",
+      "servers": [
+        {
+          "name": "Serveur Nexus Life",
+          "ip": "46.105.167.16",
+          "port": "3000",
+          "queryPort": "3001",
+          "type": "eco",
+          "protocol": "eco"
+        }
+      ]
+    },
+    {
+      "id": "rust",
+      "name": "Rust",
+      "icon": "plane",
+      "servers": [
+        {
+          "name": "Serveur Nexus Life",
+          "ip": "46.105.167.17",
+          "port": "27030",
+          "queryPort": "27031",
+          "type": "rust",
+          "protocol": "rust"
+        }
+      ]
+    },
+    {
+      "id": "battlebit",
+      "name": "BattleBit",
+      "icon": "gun",
+      "servers": [
+        {
+          "name": "[FR]Clan-RmG.com | ALL GAMEMODES | discord.gg/tqPtgyk6yT",
+          "type": "battlebit",
+          "protocol": "battlebit"
+        }
+      ]
+    }
+  ]
+}

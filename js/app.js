@@ -1,92 +1,136 @@
+// Configuration centralisée
+const CONFIG = {
+    baseUrl: 'https://fastdl.clan-rmg.com/launcher/news/',
+    configUrl: 'https://fastdl.clan-rmg.com/launcher/config.json',
+    updateInterval: 30000,
+    loadingDelay: 300,
+    servers: {}, // Will be populated dynamically
+    tabs: [] // Will be populated dynamically
+};
+
 class GameLauncher {
     constructor() {
-        // Add loading state management
-        this.loadingTasks = {
-            fontAwesome: false,
-            serverStatus: false,
-            news: false,
-            gameDig: false
-        };
-        
-        this.currentTab = 'association';
-        this.servers = {
-            css: [
-                {
-                    name: 'Serveur Poolparty DeathMatch',
-                    ip: '91.121.50.47',
-                    port: '27015',
-                    queryPort: '27015',
-                    type: 'css',
-                    protocol: 'source'
-                },
-                {
-                    name: 'Serveur Antiroxx',
-                    ip: '46.105.167.16',
-                    port: '27015',
-                    queryPort: '27015',
-                    type: 'css',
-                    protocol: 'source'
-                },
-                {
-                    name: 'Serveur AimDeathMatch',
-                    ip: '46.105.167.18',
-                    port: '27015',
-                    queryPort: '27015',
-                    type: 'css',
-                    protocol: 'source'
-                }
-            ],
-            cs2: [
-                {
-                    name: 'Serveur PooLparty DeathMatch',
-                    ip: '46.105.167.17',
-                    port: '27015',
-                    queryPort: '27015',
-                    type: 'csgo',
-                    protocol: 'csgo'
-                }
-            ],
-            eco: [
-                {
-                    name: 'Serveur Nexus Life',
-                    ip: '46.105.167.16',
-                    port: '3000',
-                    queryPort: '3001',
-                    type: 'eco',
-                    protocol: 'eco'
-                }
-            ],
-            rust: [
-                {
-                    name: 'Serveur Nexus Life',
-                    ip: '46.105.167.17',
-                    port: '27030',
-                    queryPort: '27031',
-                    type: 'rust',
-                    protocol: 'rust'
-                }
-            ],
-            battlebit: [
-                {
-                    name: '[FR]Clan-RmG.com | ALL GAMEMODES | discord.gg/tqPtgyk6yT',
-                    type: 'battlebit',
-                    protocol: 'battlebit'
-                }
-            ]
-        };
-
-        this.newsUrls = {
-            association: 'https://fastdl.clan-rmg.com/launcher/news/association.json',
-            css: 'https://fastdl.clan-rmg.com/launcher/news/css.json',
-            cs2: 'https://fastdl.clan-rmg.com/launcher/news/csgo.json',
-            eco: 'https://fastdl.clan-rmg.com/launcher/news/eco.json',
-            rust: 'https://fastdl.clan-rmg.com/launcher/news/rust.json',
-            battlebit: 'https://fastdl.clan-rmg.com/launcher/news/battlebit.json'
-        };
+        this.currentTab = null;
+        this.loadingTasks = new Set(['fontAwesome', 'serverStatus', 'news', 'config']);
+        this.domCache = new Map();
+        this.newsUrls = new Map();
 
         this.initializeUI();
         this.setupEventListeners();
         this.initializeApp();
+    }
+
+    async fetchConfig() {
+        try {
+            const response = await window.electronAPI.fetchNews(CONFIG.configUrl);
+            if (response.success) {
+                const config = typeof response.data === 'string' ? JSON.parse(response.data) : response.data;
+                
+                // Update CONFIG with fetched data
+                CONFIG.tabs = config.tabs;
+                CONFIG.servers = {};
+                
+                // Process tabs and setup servers configuration
+                config.tabs.forEach(tab => {
+                    if (tab.servers && tab.servers.length > 0) {
+                        CONFIG.servers[tab.id] = tab.servers;
+                    }
+                    // Setup news URLs
+                    this.newsUrls.set(tab.id, `${CONFIG.baseUrl}${tab.id}.json`);
+                });
+
+                // Set initial tab
+                this.currentTab = config.tabs.find(tab => tab.isDefault)?.id || config.tabs[0]?.id;
+                
+                // Create UI for tabs
+                await this.createTabsUI(config.tabs);
+                
+                this.loadingTasks.config = true;
+                return true;
+            }
+        } catch (error) {
+            console.error('Error fetching config:', error);
+            // Create offline fallback configuration
+            this.createOfflineFallback();
+            this.loadingTasks.config = true;
+            return true;
+        }
+        return false;
+    }
+
+    createOfflineFallback() {
+        console.warn('Using offline fallback configuration');
+        
+        // Create offline tab configuration
+        const offlineConfig = {
+            tabs: [
+                {
+                    id: 'offline',
+                    name: 'Launcher Hors Ligne',
+                    icon: 'wifi',
+                    servers: [],
+                    isDefault: true
+                }
+            ]
+        };
+
+        // Update CONFIG with offline data
+        CONFIG.tabs = offlineConfig.tabs;
+        CONFIG.servers = {};
+        
+        // Setup news URLs for offline tab
+        this.newsUrls.set('offline', `${CONFIG.baseUrl}offline.json`);
+        
+        // Set initial tab
+        this.currentTab = 'offline';
+        
+        // Create UI for offline tab
+        this.createTabsUI(offlineConfig.tabs);
+    }
+
+    async createTabsUI(tabs) {
+        // Clear existing tabs
+        const navLinks = document.querySelector('.nav-links');
+        const mainContent = document.querySelector('main.content');
+        navLinks.innerHTML = '';
+        mainContent.innerHTML = '';
+
+        // Create new tabs
+        tabs.forEach(tab => {
+            // Create sidebar tab
+            const li = document.createElement('li');
+            li.setAttribute('data-tab', tab.id);
+            if (tab.id === this.currentTab) li.classList.add('active');
+            li.innerHTML = `
+                <i class="fas fa-${tab.icon}"></i>
+                <span>${tab.name}</span>
+            `;
+            navLinks.appendChild(li);
+
+            // Create content section
+            const content = document.createElement('div');
+            content.className = `tab-content${tab.id === this.currentTab ? ' active' : ''}`;
+            content.id = tab.id;
+            content.innerHTML = `
+                <header class="content-header">
+                    <h1>${tab.name}</h1>
+                    ${tab.servers && tab.servers.length > 0 ? `
+                        <div class="server-status">
+                            <span class="players-online">
+                                <i class="fas fa-users"></i>
+                                <span class="count">0</span> joueurs en ligne
+                            </span>
+                        </div>
+                    ` : ''}
+                </header>
+                ${tab.servers && tab.servers.length > 0 ? '<div class="server-status-container"></div>' : ''}
+                <div class="news-grid"></div>
+            `;
+            mainContent.appendChild(content);
+        });
+
+        // Reattach event listeners
+        this.setupEventListeners();
     }
 
     async initializeApp() {
@@ -94,11 +138,15 @@ class GameLauncher {
             // Ensure electronAPI is available first
             await this.waitForElectronAPI();
             
-            // Initialize GameDig requests immediately
-            this.initializeGameDig();
+            // Load configuration first
+            const configLoaded = await this.fetchConfig();
+            if (!configLoaded) {
+                throw new Error('Failed to load configuration');
+            }
             
-            // Wait for Font Awesome and start other tasks in parallel
+            // Initialize GameDig requests and other tasks in parallel
             await Promise.all([
+                this.initializeGameDig(),
                 this.waitForFontAwesome().then(() => {
                     this.loadingTasks.fontAwesome = true;
                 }),
@@ -276,7 +324,7 @@ class GameLauncher {
 
     async updateServerStatus() {
         try {
-            const statusResults = await window.electronAPI.checkMultipleServers(this.servers);
+            const statusResults = await window.electronAPI.checkMultipleServers(CONFIG.servers);
             
             for (const [gameType, servers] of Object.entries(statusResults)) {
                 this.updateServerUI(gameType, servers);
@@ -376,7 +424,7 @@ class GameLauncher {
     }
 
     async updateNews() {
-        for (const [category, url] of Object.entries(this.newsUrls)) {
+        for (const [category, url] of this.newsUrls) {
             try {
                 const result = await window.electronAPI.fetchNews(url);
                 
@@ -473,6 +521,20 @@ class GameLauncher {
         }
 
         const fallbackNews = {
+            offline: [
+                { 
+                    title: 'Launcher en mode hors ligne', 
+                    content: 'Le launcher fonctionne actuellement en mode hors ligne. La configuration des serveurs et les actualités ne peuvent pas être chargées depuis le serveur distant. Vérifiez votre connexion internet et redémarrez l\'application.', 
+                    date: new Date().toISOString(),
+                    author: 'Système'
+                },
+                { 
+                    title: 'Fonctionnalités limitées', 
+                    content: 'En mode hors ligne, certaines fonctionnalités peuvent être indisponibles. Pour accéder à tous les serveurs et actualités, une connexion internet est requise.', 
+                    date: new Date().toISOString(),
+                    author: 'Système'
+                }
+            ],
             association: [
                 { 
                     title: 'Bienvenue sur le launcher RMG !', 
@@ -519,7 +581,7 @@ class GameLauncher {
                     author: 'Admin BattleBit'
                 }
             ],
-            eco: [
+            rust: [
                 { 
                     title: 'Serveur Rust Nexus disponible', 
                     content: 'Découvrez Rust sur notre serveur Nexus. Construisez et survivre !', 
