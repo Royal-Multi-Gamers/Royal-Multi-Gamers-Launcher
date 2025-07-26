@@ -155,24 +155,34 @@ async function checkBattleBitServer(server) {
 async function checkGameDigServer(server) {
     try {
         const state = await GameDig.query({
-            type: server.type, host: server.ip,
+            type: server.type,
+            host: server.ip,
             port: parseInt(server.queryPort || server.port),
-            maxAttempts: 1, socketTimeout: CONFIG.timeouts.socket,
-            attemptTimeout: CONFIG.timeouts.attempt, givenPortOnly: true
+            maxAttempts: 1,
+            socketTimeout: CONFIG.timeouts.socket,
+            attemptTimeout: CONFIG.timeouts.attempt,
+            givenPortOnly: true
         });
 
         return {
-            ...server, online: true,
+            ...server,
+            online: true,
             players: state.players?.length || 0,
             maxPlayers: state.maxplayers || 100,
             name: state.name || server.name || 'Serveur',
-            map: state.map || 'Inconnu', ping: state.ping || 0
+            map: state.map || 'Inconnu',
+            ping: state.ping || 0
         };
     } catch (error) {
         console.error(`Server error ${server.ip}:${server.queryPort || server.port}:`, error.message);
         return {
-            ...server, online: false, players: 0, maxPlayers: 100,
-            name: server.name || 'Serveur hors ligne', map: 'N/A', ping: 0
+            ...server,
+            online: false,
+            players: 0,
+            maxPlayers: 100,
+            name: server.name || 'Serveur hors ligne',
+            map: 'N/A',
+            ping: 0
         };
     }
 }
