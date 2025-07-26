@@ -104,11 +104,12 @@ function setupIPCHandlers() {
     ipcMain.handle('check-multiple-servers', async (_, servers) => {
         const results = {};
         
-        for (const [gameType, serverList] of Object.entries(servers)) {
+        // Run all gameType server checks concurrently
+        await Promise.all(Object.entries(servers).map(async ([gameType, serverList]) => {
             results[gameType] = await Promise.all(serverList.map(server => 
                 server.type === 'battlebit' ? checkBattleBitServer(server) : checkGameDigServer(server)
             ));
-        }
+        }));
         
         return results;
     });

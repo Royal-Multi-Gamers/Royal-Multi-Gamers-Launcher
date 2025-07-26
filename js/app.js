@@ -351,10 +351,18 @@ class GameLauncher {
 
     async updateServerStatus() {
         try {
-            const statusResults = await window.electronAPI.checkMultipleServers(CONFIG.servers);
-            
-            for (const [gameType, servers] of Object.entries(statusResults)) {
-                this.updateServerUI(gameType, servers);
+            // Update each gameType server group individually for incremental UI updates
+            const gameTypes = Object.keys(CONFIG.servers);
+            for (const gameType of gameTypes) {
+                try {
+                    const singleServerGroup = { [gameType]: CONFIG.servers[gameType] };
+                    const statusResult = await window.electronAPI.checkMultipleServers(singleServerGroup);
+                    if (statusResult && statusResult[gameType]) {
+                        this.updateServerUI(gameType, statusResult[gameType]);
+                    }
+                } catch (error) {
+                    console.error(`Error updating server status for ${gameType}:`, error);
+                }
             }
         } catch (error) {
             console.error('Error updating server status:', error);
