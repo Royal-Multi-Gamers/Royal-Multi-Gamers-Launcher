@@ -9,7 +9,13 @@ const CONFIG = {
         width: 1200, height: 800, minWidth: 1000, minHeight: 700,
         backgroundColor: '#1a1a1a', frame: false, show: false
     },
-    timeouts: { socket: 1500, attempt: 2000, news: 5000 },
+    timeouts: { 
+        socket: 3000,        // Increased from 1500ms
+        attempt: 4000,       // Increased from 2000ms
+        socketRetry: 5000,   // Longer timeout for retries
+        attemptRetry: 6000,  // Longer timeout for retries
+        news: 5000 
+    },
     protocols: {
         source: 'css', csgo: 'csgo', eco: 'eco',
         battlebit: 'https://publicapi.battlebit.cloud/Servers/GetServerList'
@@ -100,17 +106,23 @@ function setupIPCHandlers() {
         }
     });
 
-    // Vérification statut serveur optimisée
-    ipcMain.handle('check-multiple-servers', async (_, servers) => {
+    // Vérification statut serveur optimisée avec retry logic
+    ipcMain.handle('check-multiple-servers', async (_, servers, isInitialCheck = false) => {
+        console.log(`[SERVER CHECK] Starting server check - Initial: ${isInitialCheck}`);
         const results = {};
         
         // Run all gameType server checks concurrently
         await Promise.all(Object.entries(servers).map(async ([gameType, serverList]) => {
+            console.log(`[SERVER CHECK] Checking ${gameType} servers - Count: ${serverList.length}`);
+            // Process all servers in parallel for each game type
             results[gameType] = await Promise.all(serverList.map(server => 
-                server.type === 'battlebit' ? checkBattleBitServer(server) : checkGameDigServer(server)
+                server.type === 'battlebit' ? 
+                    checkBattleBitServerWithRetry(server, isInitialCheck) : 
+                    checkGameDigServerWithRetry(server, isInitialCheck)
             ));
         }));
         
+        console.log(`[SERVER CHECK] Completed server check - Results:`, Object.keys(results));
         return results;
     });
 
@@ -132,10 +144,12 @@ function setupIPCHandlers() {
     });
 }
 
-async function checkBattleBitServer(server) {
+async function checkBattleBitServer(server, useRetryTimeouts = false) {
     try {
+        const timeout = useRetryTimeouts ? CONFIG.timeouts.news * 2 : CONFIG.timeouts.news;
+        
         const { data } = await axios.get(CONFIG.protocols.battlebit, {
-            timeout: CONFIG.timeouts.news,
+            timeout,
             headers: { 'User-Agent': 'Royal-Multi-Gamers-Launcher/1.0.0' }
         });
 
@@ -152,15 +166,40 @@ async function checkBattleBitServer(server) {
     }
 }
 
-async function checkGameDigServer(server) {
+async function checkBattleBitServerWithRetry(server, isInitialCheck = false) {
+    // First attempt with standard timeout
+    let result = await checkBattleBitServer(server, false);
+    
+    // If server appears offline and this is an initial check, retry with longer timeout
+    if (!result.online && isInitialCheck) {
+        console.log(`Retrying BattleBit server ${server.name} with extended timeout...`);
+        await new Promise(resolve => setTimeout(resolve, 500)); // Small delay before retry
+        result = await checkBattleBitServer(server, true);
+        
+        if (result.online) {
+            console.log(`BattleBit server ${server.name} came online on retry`);
+        }
+    }
+    
+    return result;
+}
+
+async function checkGameDigServer(server, useRetryTimeouts = false) {
     try {
+        const timeouts = useRetryTimeouts ? {
+            socketTimeout: CONFIG.timeouts.socketRetry,
+            attemptTimeout: CONFIG.timeouts.attemptRetry
+        } : {
+            socketTimeout: CONFIG.timeouts.socket,
+            attemptTimeout: CONFIG.timeouts.attempt
+        };
+
         const state = await GameDig.query({
             type: server.type,
             host: server.ip,
             port: parseInt(server.queryPort || server.port),
             maxAttempts: 1,
-            socketTimeout: CONFIG.timeouts.socket,
-            attemptTimeout: CONFIG.timeouts.attempt,
+            ...timeouts,
             givenPortOnly: true
         });
 
@@ -185,6 +224,24 @@ async function checkGameDigServer(server) {
             ping: 0
         };
     }
+}
+
+async function checkGameDigServerWithRetry(server, isInitialCheck = false) {
+    // First attempt with standard timeouts
+    let result = await checkGameDigServer(server, false);
+    
+    // If server appears offline and this is an initial check, retry with longer timeouts
+    if (!result.online && isInitialCheck) {
+        console.log(`Retrying server ${server.ip}:${server.queryPort || server.port} with extended timeouts...`);
+        await new Promise(resolve => setTimeout(resolve, 500)); // Small delay before retry
+        result = await checkGameDigServer(server, true);
+        
+        if (result.online) {
+            console.log(`Server ${server.ip}:${server.queryPort || server.port} came online on retry`);
+        }
+    }
+    
+    return result;
 }
 
 app.whenReady().then(createWindow);

@@ -1,6 +1,6 @@
 {
   "name": "royal-multi-gamers-launcher",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Royal Multi Gamers Launcher - Association sous loi 1901",
   "main": "main.js",
   "scripts": {
@@ -81,7 +81,7 @@
   "author": "Royal Multi Gamers",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^27.3.11",
+    "electron": "^37.4.0",
     "electron-builder": "^24.13.3"
   },
   "dependencies": {

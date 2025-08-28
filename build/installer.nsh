@@ -5,10 +5,6 @@
   ; Create application data directory
   CreateDirectory "$APPDATA\Royal Multi Gamers Launcher"
   
-  ; Set permissions for the application directory
-  AccessControl::GrantOnFile "$INSTDIR" "(BU)" "GenericRead"
-  AccessControl::GrantOnFile "$INSTDIR" "(BU)" "GenericExecute"
-  
   ; Register file associations if needed
   WriteRegStr HKCR ".gal" "" "RoyalMultiGamersLauncher"
   WriteRegStr HKCR "RoyalMultiGamersLauncher" "" "Royal Multi Gamers Launcher File"

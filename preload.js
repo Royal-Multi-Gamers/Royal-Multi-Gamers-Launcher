@@ -11,7 +11,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     
     // Server status
     checkServerStatus: (serverInfo) => ipcRenderer.invoke('check-server-status', serverInfo),
-    checkMultipleServers: (servers) => ipcRenderer.invoke('check-multiple-servers', servers),
+    checkMultipleServers: (servers, isInitialCheck) => ipcRenderer.invoke('check-multiple-servers', servers, isInitialCheck),
     
     // Server connection
     connectToServer: (serverInfo) => ipcRenderer.invoke('connect-to-server', serverInfo),

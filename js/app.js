@@ -19,6 +19,8 @@ class GameLauncher {
         };
         this.newsUrls = new Map();
         this.isInitializing = true;
+        this.initialServerCheckComplete = false;
+        this.serverCheckInProgress = false;
 
         document.body.classList.add('initializing');
 
@@ -145,8 +147,8 @@ class GameLauncher {
                 throw new Error('Failed to load configuration');
             }
 
-            await Promise.all([
-                this.initializeGameDig(),
+            // Start parallel initialization tasks
+            const initTasks = [
                 this.waitForFontAwesome().then(() => {
                     this.loadingTasks.fontAwesome = true;
                     this.checkLoadingComplete();
@@ -154,8 +156,11 @@ class GameLauncher {
                 this.updateNews().then(() => {
                     this.loadingTasks.news = true;
                     this.checkLoadingComplete();
-                })
-            ]);
+                }),
+                this.initializeGameDig() // This will handle its own loading state
+            ];
+
+            await Promise.all(initTasks);
         } catch (error) {
             console.error('Initialization error:', error);
             const loadingSpinner = document.querySelector('.loading-spinner');
@@ -214,7 +219,8 @@ class GameLauncher {
     checkLoadingComplete() {
         const allTasksComplete = Object.values(this.loadingTasks).every(task => task === true);
 
-        if (allTasksComplete) {
+        if (allTasksComplete && this.initialServerCheckComplete) {
+            console.log('All loading tasks complete, hiding overlay...');
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
                     this.hideLoadingOverlay();
@@ -296,35 +302,70 @@ class GameLauncher {
 
     async initializeGameDig() {
         try {
-            await this.updateServerStatus();
+            console.log('Starting initial server status check...');
+            await this.updateServerStatus(true); // Pass true for initial check
+            
             this.loadingTasks.gameDig = true;
             this.loadingTasks.serverStatus = true;
+            this.initialServerCheckComplete = true;
 
-            setInterval(() => this.updateServerStatus(), 30000);
+            console.log('Initial server status check complete');
+
+            // Set up periodic updates (without retry logic)
+            setInterval(() => this.updateServerStatus(false), 30000);
 
             this.checkLoadingComplete();
         } catch (error) {
             console.error('Error initializing GameDig:', error);
+            // Mark as complete even on error to prevent infinite loading
+            this.loadingTasks.gameDig = true;
+            this.loadingTasks.serverStatus = true;
+            this.initialServerCheckComplete = true;
+            this.checkLoadingComplete();
+            
+            // Retry after delay
             setTimeout(() => this.initializeGameDig(), 5000);
         }
     }
 
-    async updateServerStatus() {
+    async updateServerStatus(isInitialCheck = false) {
+        // Prevent multiple simultaneous server checks
+        if (this.serverCheckInProgress && !isInitialCheck) {
+            console.log('Server check already in progress, skipping...');
+            return;
+        }
+
+        this.serverCheckInProgress = true;
+
         try {
             const gameTypes = Object.keys(CONFIG.servers);
-            for (const gameType of gameTypes) {
-                try {
-                    const singleServerGroup = { [gameType]: CONFIG.servers[gameType] };
-                    const statusResult = await window.electronAPI.checkMultipleServers(singleServerGroup);
-                    if (statusResult && statusResult[gameType]) {
-                        this.updateServerUI(gameType, statusResult[gameType]);
-                    }
-                } catch (error) {
-                    console.error(`Error updating server status for ${gameType}:`, error);
-                }
+            
+            if (gameTypes.length === 0) {
+                console.log('No servers configured, skipping status check');
+                return;
             }
+
+            console.log(`[FRONTEND] Checking server status for ${gameTypes.length} game types${isInitialCheck ? ' (initial check)' : ''}...`);
+
+            // Check all servers at once instead of per game type to avoid multiple calls
+            const allServersResult = await window.electronAPI.checkMultipleServers(CONFIG.servers, isInitialCheck);
+            
+            if (allServersResult) {
+                // Update UI for each game type
+                Object.entries(allServersResult).forEach(([gameType, servers]) => {
+                    if (servers && servers.length > 0) {
+                        this.updateServerUI(gameType, servers);
+                        console.log(`[FRONTEND] Updated UI for ${gameType}: ${servers.length} servers`);
+                    }
+                });
+            }
+
+            console.log(`[FRONTEND] Server status update complete for all game types`);
+
         } catch (error) {
             console.error('Error updating server status:', error);
+        } finally {
+            this.serverCheckInProgress = false;
         }
     }
 
