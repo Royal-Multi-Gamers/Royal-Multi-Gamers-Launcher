@@ -14,16 +14,16 @@ const CONFIG = {
         attempt: 4000,       // Increased from 2000ms
         socketRetry: 5000,   // Longer timeout for retries
         attemptRetry: 6000,  // Longer timeout for retries
-        news: 5000 
+        api: 5000            // Generic HTTP API timeout
     },
     protocols: {
-        source: 'css', csgo: 'csgo', eco: 'eco',
-        battlebit: 'https://publicapi.battlebit.cloud/Servers/GetServerList'
+        source: 'css', csgo: 'csgo', eco: 'eco'
     },
     urls: {
         steam: (ip, port) => `steam://connect/${ip}:${port}`,
         battlebit: 'steam://rungameid/671860/',
-        eco: (ip, port) => `http://${ip}:${port}`
+        eco: (ip, port) => `http://${ip}:${port}`,
+        battlebitApi: 'https://publicapi.battlebit.cloud/Servers/GetServerList'
     }
 };
 
@@ -72,7 +72,14 @@ function setupIPCHandlers() {
         'window-minimize': () => mainWindow.minimize(),
         'window-maximize': () => mainWindow.isMaximized() ? mainWindow.unmaximize() : mainWindow.maximize(),
         'window-close': () => mainWindow.close(),
-        'open-external': (_, url) => shell.openExternal(url)
+        'open-external': (_, url) => {
+            const ALLOWED_PREFIXES = ['https://', 'http://', 'steam://'];
+            if (typeof url !== 'string' || !ALLOWED_PREFIXES.some(p => url.startsWith(p))) {
+                console.error(`Blocked unsafe external URL: ${String(url).substring(0, 100)}`);
+                return;
+            }
+            shell.openExternal(url);
+        }
     };
 
     Object.entries(windowActions).forEach(([event, handler]) => {
@@ -117,8 +124,8 @@ function setupIPCHandlers() {
             // Process all servers in parallel for each game type
             results[gameType] = await Promise.all(serverList.map(server => 
                 server.type === 'battlebit' ? 
-                    checkBattleBitServerWithRetry(server, isInitialCheck) : 
-                    checkGameDigServerWithRetry(server, isInitialCheck)
+                    withRetry(checkBattleBitServer, server, isInitialCheck) : 
+                    withRetry(checkGameDigServer, server, isInitialCheck)
             ));
         }));
         
@@ -130,7 +137,7 @@ function setupIPCHandlers() {
     ipcMain.handle('fetch-news', async (_, newsUrl) => {
         try {
             const { data } = await axios.get(newsUrl, { 
-                timeout: CONFIG.timeouts.news,
+                timeout: CONFIG.timeouts.api,
                 headers: { 'User-Agent': 'Royal-Multi-Gamers-Launcher/1.0.0' }
             });
             return { success: true, data };
@@ -146,9 +153,9 @@ function setupIPCHandlers() {
 
 async function checkBattleBitServer(server, useRetryTimeouts = false) {
     try {
-        const timeout = useRetryTimeouts ? CONFIG.timeouts.news * 2 : CONFIG.timeouts.news;
+        const timeout = useRetryTimeouts ? CONFIG.timeouts.api * 2 : CONFIG.timeouts.api;
         
-        const { data } = await axios.get(CONFIG.protocols.battlebit, {
+        const { data } = await axios.get(CONFIG.urls.battlebitApi, {
             timeout,
             headers: { 'User-Agent': 'Royal-Multi-Gamers-Launcher/1.0.0' }
         });
@@ -166,23 +173,7 @@ async function checkBattleBitServer(server, useRetryTimeouts = false) {
     }
 }
 
-async function checkBattleBitServerWithRetry(server, isInitialCheck = false) {
-    // First attempt with standard timeout
-    let result = await checkBattleBitServer(server, false);
-    
-    // If server appears offline and this is an initial check, retry with longer timeout
-    if (!result.online && isInitialCheck) {
-        console.log(`Retrying BattleBit server ${server.name} with extended timeout...`);
-        await new Promise(resolve => setTimeout(resolve, 500)); // Small delay before retry
-        result = await checkBattleBitServer(server, true);
-        
-        if (result.online) {
-            console.log(`BattleBit server ${server.name} came online on retry`);
-        }
-    }
-    
-    return result;
-}
+
 
 async function checkGameDigServer(server, useRetryTimeouts = false) {
     try {
@@ -226,21 +217,16 @@ async function checkGameDigServer(server, useRetryTimeouts = false) {
     }
 }
 
-async function checkGameDigServerWithRetry(server, isInitialCheck = false) {
-    // First attempt with standard timeouts
-    let result = await checkGameDigServer(server, false);
-    
-    // If server appears offline and this is an initial check, retry with longer timeouts
+async function withRetry(checkFn, server, isInitialCheck) {
+    let result = await checkFn(server, false);
     if (!result.online && isInitialCheck) {
-        console.log(`Retrying server ${server.ip}:${server.queryPort || server.port} with extended timeouts...`);
-        await new Promise(resolve => setTimeout(resolve, 500)); // Small delay before retry
-        result = await checkGameDigServer(server, true);
-        
+        console.log(`Retrying server ${server.name || server.ip} with extended timeouts...`);
+        await new Promise(resolve => setTimeout(resolve, 500));
+        result = await checkFn(server, true);
         if (result.online) {
-            console.log(`Server ${server.ip}:${server.queryPort || server.port} came online on retry`);
+            console.log(`Server ${server.name || server.ip} came online on retry`);
         }
     }
-    
     return result;
 }
 

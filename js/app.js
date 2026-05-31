@@ -1,3 +1,13 @@
+function escapeHtml(str) {
+    if (typeof str !== 'string') return '';
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 const CONFIG = {
     baseUrl: 'https://fastdl.clan-rmg.com/launcher/news/',
     configUrl: 'https://fastdl.clan-rmg.com/launcher/config.json',
@@ -12,15 +22,13 @@ class GameLauncher {
         this.currentTab = null;
         this.loadingTasks = {
             fontAwesome: false,
-            serverStatus: false,
             news: false,
-            config: false,
-            gameDig: false
+            config: false
         };
         this.newsUrls = new Map();
         this.isInitializing = true;
-        this.initialServerCheckComplete = false;
         this.serverCheckInProgress = false;
+        this._statusInterval = null;
 
         document.body.classList.add('initializing');
 
@@ -94,8 +102,8 @@ class GameLauncher {
             li.setAttribute('data-tab', tab.id);
             if (tab.id === this.currentTab) li.classList.add('active');
             li.innerHTML = `
-                <i class="fas fa-${tab.icon}"></i>
-                <span>${tab.name}</span>
+                <i class="fas fa-${escapeHtml(tab.icon)}"></i>
+                <span>${escapeHtml(tab.name)}</span>
             `;
             navFragment.appendChild(li);
 
@@ -104,7 +112,7 @@ class GameLauncher {
             content.id = tab.id;
             content.innerHTML = `
                 <header class="content-header">
-                    <h1>${tab.name}</h1>
+                    <h1>${escapeHtml(tab.name)}</h1>
                     ${tab.servers && tab.servers.length > 0 ? `
                         <div class="server-status">
                             <span class="players-online">
@@ -114,7 +122,7 @@ class GameLauncher {
                         </div>
                     ` : ''}
                 </header>
-                ${tab.servers && tab.servers.length > 0 ? '<div class="server-status-container"></div>' : ''}
+                ${tab.servers && tab.servers.length > 0 ? '<div class="server-status-container"><div class="server-loading-skeleton"><i class="fas fa-spinner fa-spin"></i> Vérification des serveurs...</div></div>' : ''}
                 <div class="news-grid"></div>
             `;
             contentFragment.appendChild(content);
@@ -139,6 +147,14 @@ class GameLauncher {
     }
 
     async initializeApp() {
+        const loadingTimeout = setTimeout(() => {
+            console.warn('Loading timeout reached, forcing completion');
+            this.isInitializing = false;
+            this.initialServerCheckComplete = true;
+            Object.keys(this.loadingTasks).forEach(k => { this.loadingTasks[k] = true; });
+            this.hideLoadingOverlay();
+        }, 15000);
+
         try {
             await this.waitForElectronAPI();
 
@@ -147,7 +163,7 @@ class GameLauncher {
                 throw new Error('Failed to load configuration');
             }
 
-            // Start parallel initialization tasks
+            // Start parallel initialization tasks (server check runs in background)
             const initTasks = [
                 this.waitForFontAwesome().then(() => {
                     this.loadingTasks.fontAwesome = true;
@@ -156,11 +172,13 @@ class GameLauncher {
                 this.updateNews().then(() => {
                     this.loadingTasks.news = true;
                     this.checkLoadingComplete();
-                }),
-                this.initializeGameDig() // This will handle its own loading state
+                })
             ];
 
             await Promise.all(initTasks);
+
+            // Server checks run in background after overlay is hidden
+            this.initializeGameDig();
         } catch (error) {
             console.error('Initialization error:', error);
             const loadingSpinner = document.querySelector('.loading-spinner');
@@ -172,13 +190,17 @@ class GameLauncher {
                     </div>
                 `;
             }
+        } finally {
+            clearTimeout(loadingTimeout);
         }
     }
 
     waitForElectronAPI() {
-        return new Promise(resolve => {
+        return new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => reject(new Error('electronAPI not available after 10s')), 10000);
             const check = () => {
                 if (window.electronAPI) {
+                    clearTimeout(timeout);
                     resolve();
                 } else {
                     setTimeout(check, 50);
@@ -190,6 +212,7 @@ class GameLauncher {
 
     async waitForFontAwesome() {
         return new Promise(resolve => {
+            const fallback = setTimeout(resolve, 3000);
             if (document.fonts && document.fonts.ready) {
                 document.fonts.ready.then(() => {
                     const testElement = document.createElement('i');
@@ -201,6 +224,7 @@ class GameLauncher {
                     const checkFont = () => {
                         const computedStyle = window.getComputedStyle(testElement, ':before');
                         if (computedStyle.content && computedStyle.content !== 'none') {
+                            clearTimeout(fallback);
                             document.body.removeChild(testElement);
                             resolve();
                         } else {
@@ -210,8 +234,6 @@ class GameLauncher {
 
                     setTimeout(checkFont, 100);
                 });
-            } else {
-                setTimeout(resolve, 500);
             }
         });
     }
@@ -219,7 +241,7 @@ class GameLauncher {
     checkLoadingComplete() {
         const allTasksComplete = Object.values(this.loadingTasks).every(task => task === true);
 
-        if (allTasksComplete && this.initialServerCheckComplete) {
+        if (allTasksComplete) {
             console.log('All loading tasks complete, hiding overlay...');
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
@@ -273,6 +295,9 @@ class GameLauncher {
                 window.electronAPI.openExternal(url);
             });
         });
+
+        const yearEl = document.getElementById('current-year');
+        if (yearEl) yearEl.textContent = new Date().getFullYear();
     }
 
     setupEventListeners() {
@@ -302,27 +327,16 @@ class GameLauncher {
 
     async initializeGameDig() {
         try {
-            console.log('Starting initial server status check...');
-            await this.updateServerStatus(true); // Pass true for initial check
-            
-            this.loadingTasks.gameDig = true;
-            this.loadingTasks.serverStatus = true;
-            this.initialServerCheckComplete = true;
+            console.log('Starting background server status check...');
+            await this.updateServerStatus(true);
 
             console.log('Initial server status check complete');
 
-            // Set up periodic updates (without retry logic)
-            setInterval(() => this.updateServerStatus(false), 30000);
-
-            this.checkLoadingComplete();
+            // Set up periodic updates
+            if (this._statusInterval) clearInterval(this._statusInterval);
+            this._statusInterval = setInterval(() => this.updateServerStatus(false), 30000);
         } catch (error) {
             console.error('Error initializing GameDig:', error);
-            // Mark as complete even on error to prevent infinite loading
-            this.loadingTasks.gameDig = true;
-            this.loadingTasks.serverStatus = true;
-            this.initialServerCheckComplete = true;
-            this.checkLoadingComplete();
-            
             // Retry after delay
             setTimeout(() => this.initializeGameDig(), 5000);
         }
@@ -395,22 +409,22 @@ class GameLauncher {
 
             serverElement.innerHTML = `
                 <div class="server-info">
-                    <h3 class="server-name">${server.name}</h3>
+                    <h3 class="server-name">${escapeHtml(server.name)}</h3>
                     <div class="server-details">
                         <span class="server-status ${server.online ? 'online' : 'offline'}">
                             ${server.online ? '🟢' : '🔴'} ${server.online ? 'En ligne' : 'Hors ligne'}
                         </span>
                         <span class="server-players">
-                            👥 ${server.players}/${server.maxPlayers}
+                            👥 ${parseInt(server.players) || 0}/${parseInt(server.maxPlayers) || 0}
                         </span>
-                        ${server.map && server.map !== 'N/A' ? `<span class="server-map">🗺️ ${server.map}</span>` : ''}
-                        ${server.ping > 0 ? `<span class="server-ping">📡 ${server.ping}ms</span>` : ''}
+                        ${server.map && server.map !== 'N/A' ? `<span class="server-map">🗺️ ${escapeHtml(server.map)}</span>` : ''}
+                        ${server.ping > 0 ? `<span class="server-ping">📡 ${parseInt(server.ping) || 0}ms</span>` : ''}
                     </div>
                 </div>
                 <button class="btn-play ${server.online ? '' : 'disabled'}" 
-                        data-ip="${server.ip}" 
-                        data-port="${server.port}" 
-                        data-protocol="${server.protocol}"
+                        data-ip="${escapeHtml(server.ip)}" 
+                        data-port="${escapeHtml(String(server.port))}" 
+                        data-protocol="${escapeHtml(server.protocol)}"
                         ${!server.online ? 'disabled' : ''}>
                     <i class="fas fa-play"></i> 
                     ${server.online ? 'Rejoindre' : 'Hors ligne'}
@@ -439,23 +453,35 @@ class GameLauncher {
 
     setupPlayButtons() {
         document.querySelectorAll('.btn-play:not(.disabled)').forEach(button => {
-            button.addEventListener('click', () => {
+            button.addEventListener('click', async () => {
                 const ip = button.getAttribute('data-ip');
                 const port = button.getAttribute('data-port');
                 const protocol = button.getAttribute('data-protocol');
 
-                window.electronAPI.connectToServer({ ip, port, protocol });
-
+                button.disabled = true;
                 button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connexion...';
-                setTimeout(() => {
-                    button.innerHTML = '<i class="fas fa-play"></i> Rejoindre';
-                }, 2000);
+
+                const result = await window.electronAPI.connectToServer({ ip, port, protocol });
+
+                if (result && result.success) {
+                    button.innerHTML = '<i class="fas fa-check"></i> Connecté !';
+                    setTimeout(() => {
+                        button.disabled = false;
+                        button.innerHTML = '<i class="fas fa-play"></i> Rejoindre';
+                    }, 3000);
+                } else {
+                    button.innerHTML = '<i class="fas fa-times"></i> Erreur';
+                    setTimeout(() => {
+                        button.disabled = false;
+                        button.innerHTML = '<i class="fas fa-play"></i> Rejoindre';
+                    }, 2000);
+                }
             });
         });
     }
 
     async updateNews() {
-        for (const [category, url] of this.newsUrls) {
+        await Promise.all([...this.newsUrls.entries()].map(async ([category, url]) => {
             try {
                 const result = await window.electronAPI.fetchNews(url);
 
@@ -496,7 +522,7 @@ class GameLauncher {
                 console.error(`Error loading news for ${category}:`, error);
                 this.showFallbackNews(category);
             }
-        }
+        }));
     }
 
     updateNewsUI(category, newsData) {
@@ -518,14 +544,16 @@ class GameLauncher {
                 newsItem.className = `news-item ${index === 0 ? 'featured' : ''}`;
 
                 const date = new Date(article.date).toLocaleDateString('fr-FR');
+                const safeImage = article.image && typeof article.image === 'string' && article.image.startsWith('https://')
+                    ? escapeHtml(article.image) : null;
 
                 newsItem.innerHTML = `
-                    ${article.image ? `<img src="${article.image}" alt="${article.title}">` : ''}
+                    ${safeImage ? `<img src="${safeImage}" alt="${escapeHtml(article.title)}">` : ''}
                     <div class="news-content">
-                        <h${index === 0 ? '2' : '3'}>${article.title}</h${index === 0 ? '2' : '3'}>
-                        <p>${article.content || article.description || ''}</p>
-                        <span class="date">${date}</span>
-                        ${article.author ? `<span class="author">Par ${article.author}</span>` : ''}
+                        <h${index === 0 ? '2' : '3'}>${escapeHtml(article.title)}</h${index === 0 ? '2' : '3'}>
+                        <p>${escapeHtml(article.content || article.description || '')}</p>
+                        <span class="date">${escapeHtml(date)}</span>
+                        ${article.author ? `<span class="author">Par ${escapeHtml(article.author)}</span>` : ''}
                     </div>
                 `;
 
@@ -614,31 +642,6 @@ class GameLauncher {
 
         const articles = fallbackNews[category] || fallbackNews.association;
         this.updateNewsUI(category, { articles });
-    }
-
-    addNews(category, newsItem) {
-        const tabContent = document.getElementById(category);
-        if (!tabContent) return;
-
-        let newsContainer = tabContent.querySelector('.news-grid');
-        if (!newsContainer) {
-            newsContainer = document.createElement('div');
-            newsContainer.className = 'news-grid';
-            tabContent.appendChild(newsContainer);
-        }
-
-        const newsElement = document.createElement('div');
-        newsElement.className = 'news-item';
-        newsElement.innerHTML = `
-            <div class="news-content">
-                <h3>${newsItem.title}</h3>
-                <p>${newsItem.content}</p>
-                <span class="date">${newsItem.date}</span>
-                ${newsItem.author ? `<span class="author">Par ${newsItem.author}</span>` : ''}
-            </div>
-        `;
-
-        newsContainer.insertBefore(newsElement, newsContainer.firstChild);
     }
 }
 

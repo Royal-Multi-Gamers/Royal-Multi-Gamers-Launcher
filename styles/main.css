@@ -212,6 +212,17 @@ body.initializing {
     opacity: 0.7;
 }
 
+.server-loading-skeleton {
+    color: var(--text-muted, #888);
+    font-size: 14px;
+    padding: 16px 20px;
+    background-color: var(--background-light);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
 .server-item {
     background-color: var(--background-light);
     border-radius: 8px;

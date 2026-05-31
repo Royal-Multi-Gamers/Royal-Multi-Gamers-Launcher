@@ -19,7 +19,7 @@
     "directories": {
       "output": "dist"
     },
-    "electronVersion": "27.3.11",
+    "electronVersion": "42.3.0",
     "files": [
       "**/*",
       "!.git/**/*",
@@ -81,8 +81,8 @@
   "author": "Royal Multi Gamers",
   "license": "MIT",
   "devDependencies": {
-    "electron": "^37.4.0",
-    "electron-builder": "^24.13.3"
+    "electron": "^42.3.0",
+    "electron-builder": "^26.8.1"
   },
   "dependencies": {
     "axios": "^1.10.0",
