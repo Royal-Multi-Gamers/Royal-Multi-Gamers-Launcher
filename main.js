@@ -113,24 +113,28 @@ function setupIPCHandlers() {
         }
     });
 
-    // Vérification statut serveur optimisée avec retry logic
-    ipcMain.handle('check-multiple-servers', async (_, servers, isInitialCheck = false) => {
-        console.log(`[SERVER CHECK] Starting server check - Initial: ${isInitialCheck}`);
-        const results = {};
-        
-        // Run all gameType server checks concurrently
+    // Vérification statut serveur — streaming : chaque résultat est envoyé dès qu'il est prêt
+    ipcMain.on('check-servers-start', async (event, servers, isInitialCheck = false) => {
+        const sender = event.sender;
+        console.log(`[SERVER CHECK] Starting streaming check - Initial: ${isInitialCheck}`);
+
         await Promise.all(Object.entries(servers).map(async ([gameType, serverList]) => {
-            console.log(`[SERVER CHECK] Checking ${gameType} servers - Count: ${serverList.length}`);
-            // Process all servers in parallel for each game type
-            results[gameType] = await Promise.all(serverList.map(server => 
-                server.type === 'battlebit' ? 
-                    withRetry(checkBattleBitServer, server, isInitialCheck) : 
-                    withRetry(checkGameDigServer, server, isInitialCheck)
-            ));
+            await Promise.all(serverList.map(async (server) => {
+                const result = server.type === 'battlebit'
+                    ? await withRetry(checkBattleBitServer, server, isInitialCheck)
+                    : await withRetry(checkGameDigServer, server, isInitialCheck);
+
+                if (!sender.isDestroyed()) {
+                    sender.send('server-update', { gameType, server: result });
+                    console.log(`[SERVER CHECK] Sent result for ${result.name || result.ip} (${gameType})`);
+                }
+            }));
         }));
-        
-        console.log(`[SERVER CHECK] Completed server check - Results:`, Object.keys(results));
-        return results;
+
+        if (!sender.isDestroyed()) {
+            sender.send('server-check-done');
+            console.log('[SERVER CHECK] All checks complete');
+        }
     });
 
     // News optimisé
@@ -218,11 +222,17 @@ async function checkGameDigServer(server, useRetryTimeouts = false) {
 }
 
 async function withRetry(checkFn, server, isInitialCheck) {
+    // Capture la clé config AVANT que les fonctions de check ne modifient le nom
+    const configKey = server.name || `${server.ip}:${server.port}`;
+
     let result = await checkFn(server, false);
+    result._configKey = configKey;
+
     if (!result.online && isInitialCheck) {
         console.log(`Retrying server ${server.name || server.ip} with extended timeouts...`);
         await new Promise(resolve => setTimeout(resolve, 500));
         result = await checkFn(server, true);
+        result._configKey = configKey;
         if (result.online) {
             console.log(`Server ${server.name || server.ip} came online on retry`);
         }

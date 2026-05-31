@@ -9,9 +9,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
     // External links
     openExternal: (url) => ipcRenderer.invoke('open-external', url),
     
-    // Server status
-    checkServerStatus: (serverInfo) => ipcRenderer.invoke('check-server-status', serverInfo),
-    checkMultipleServers: (servers, isInitialCheck) => ipcRenderer.invoke('check-multiple-servers', servers, isInitialCheck),
+    // Server status — streaming (résultat envoyé serveur par serveur)
+    startServerCheck: (servers, isInitialCheck) => ipcRenderer.send('check-servers-start', servers, isInitialCheck),
+    onServerUpdate: (callback) => ipcRenderer.on('server-update', (_, data) => callback(data)),
+    onServerCheckDone: (callback) => ipcRenderer.once('server-check-done', () => callback()),
+    offServerListeners: () => {
+        ipcRenderer.removeAllListeners('server-update');
+        ipcRenderer.removeAllListeners('server-check-done');
+    },
     
     // Server connection
     connectToServer: (serverInfo) => ipcRenderer.invoke('connect-to-server', serverInfo),

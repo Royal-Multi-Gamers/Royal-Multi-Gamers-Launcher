@@ -1,3 +1,7 @@
+function serverKey(server) {
+    return server.name || `${server.ip}:${server.port}`;
+}
+
 function escapeHtml(str) {
     if (typeof str !== 'string') return '';
     return str
@@ -29,6 +33,7 @@ class GameLauncher {
         this.isInitializing = true;
         this.serverCheckInProgress = false;
         this._statusInterval = null;
+        this._serverResults = {};
 
         document.body.classList.add('initializing');
 
@@ -122,7 +127,23 @@ class GameLauncher {
                         </div>
                     ` : ''}
                 </header>
-                ${tab.servers && tab.servers.length > 0 ? '<div class="server-status-container"><div class="server-loading-skeleton"><i class="fas fa-spinner fa-spin"></i> Vérification des serveurs...</div></div>' : ''}
+                ${tab.servers && tab.servers.length > 0 ? `
+                    <div class="server-status-container">
+                        ${tab.servers.map(s => `
+                            <div class="server-item checking" data-server-key="${escapeHtml(serverKey(s))}">
+                                <div class="server-info">
+                                    <h3 class="server-name">${escapeHtml(s.name || `${s.ip}:${s.port}`)}</h3>
+                                    <div class="server-details">
+                                        <span class="server-status checking">⏳ Vérification...</span>
+                                    </div>
+                                </div>
+                                <button class="btn-play disabled" disabled>
+                                    <i class="fas fa-spinner fa-spin"></i> Vérification...
+                                </button>
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : ''}
                 <div class="news-grid"></div>
             `;
             contentFragment.appendChild(content);
@@ -342,142 +363,124 @@ class GameLauncher {
         }
     }
 
-    async updateServerStatus(isInitialCheck = false) {
-        // Prevent multiple simultaneous server checks
-        if (this.serverCheckInProgress && !isInitialCheck) {
+    updateServerStatus(isInitialCheck = false) {
+        if (this.serverCheckInProgress) {
             console.log('Server check already in progress, skipping...');
             return;
         }
 
-        this.serverCheckInProgress = true;
-
-        try {
-            const gameTypes = Object.keys(CONFIG.servers);
-            
-            if (gameTypes.length === 0) {
-                console.log('No servers configured, skipping status check');
-                return;
-            }
-
-            console.log(`[FRONTEND] Checking server status for ${gameTypes.length} game types${isInitialCheck ? ' (initial check)' : ''}...`);
-
-            // Check all servers at once instead of per game type to avoid multiple calls
-            const allServersResult = await window.electronAPI.checkMultipleServers(CONFIG.servers, isInitialCheck);
-            
-            if (allServersResult) {
-                // Update UI for each game type
-                Object.entries(allServersResult).forEach(([gameType, servers]) => {
-                    if (servers && servers.length > 0) {
-                        this.updateServerUI(gameType, servers);
-                        console.log(`[FRONTEND] Updated UI for ${gameType}: ${servers.length} servers`);
-                    }
-                });
-            }
-
-            console.log(`[FRONTEND] Server status update complete for all game types`);
-
-        } catch (error) {
-            console.error('Error updating server status:', error);
-        } finally {
-            this.serverCheckInProgress = false;
+        const gameTypes = Object.keys(CONFIG.servers);
+        if (gameTypes.length === 0) {
+            console.log('No servers configured, skipping status check');
+            return;
         }
+
+        this.serverCheckInProgress = true;
+        console.log(`[FRONTEND] Starting streaming server check${isInitialCheck ? ' (initial)' : ''}...`);
+
+        // Retire les anciens listeners avant d'en ajouter de nouveaux
+        window.electronAPI.offServerListeners();
+
+        window.electronAPI.onServerUpdate(({ gameType, server }) => {
+            console.log(`[FRONTEND] Received result for ${server.name || server.ip} (${gameType})`);
+            this.updateSingleServerUI(gameType, server);
+        });
+
+        window.electronAPI.onServerCheckDone(() => {
+            console.log('[FRONTEND] All server checks complete');
+            this.serverCheckInProgress = false;
+        });
+
+        window.electronAPI.startServerCheck(CONFIG.servers, isInitialCheck);
     }
 
-    updateServerUI(gameType, servers) {
+    updateSingleServerUI(gameType, server) {
         const tabContent = document.getElementById(gameType);
         if (!tabContent) return;
 
-        let statusContainer = tabContent.querySelector('.server-status-container');
-        if (!statusContainer) {
-            statusContainer = document.createElement('div');
-            statusContainer.className = 'server-status-container';
+        // Utilise _configKey (clé stable depuis la config) pour retrouver la ligne
+        const key = escapeHtml(server._configKey || serverKey(server));
+        const row = tabContent.querySelector(`[data-server-key="${key}"]`);
+        if (!row) return;
 
-            const header = tabContent.querySelector('.content-header');
-            if (header) {
-                header.insertAdjacentElement('afterend', statusContainer);
-            } else {
-                tabContent.insertBefore(statusContainer, tabContent.firstChild);
-            }
-        }
-
-        const newStatusContainer = document.createElement('div');
-        newStatusContainer.className = 'server-status-container';
-
-        servers.forEach(server => {
-            const serverElement = document.createElement('div');
-            serverElement.className = `server-item ${server.online ? 'online' : 'offline'}`;
-
-            serverElement.innerHTML = `
-                <div class="server-info">
-                    <h3 class="server-name">${escapeHtml(server.name)}</h3>
-                    <div class="server-details">
-                        <span class="server-status ${server.online ? 'online' : 'offline'}">
-                            ${server.online ? '🟢' : '🔴'} ${server.online ? 'En ligne' : 'Hors ligne'}
-                        </span>
-                        <span class="server-players">
-                            👥 ${parseInt(server.players) || 0}/${parseInt(server.maxPlayers) || 0}
-                        </span>
-                        ${server.map && server.map !== 'N/A' ? `<span class="server-map">🗺️ ${escapeHtml(server.map)}</span>` : ''}
-                        ${server.ping > 0 ? `<span class="server-ping">📡 ${parseInt(server.ping) || 0}ms</span>` : ''}
-                    </div>
+        row.className = `server-item ${server.online ? 'online' : 'offline'}`;
+        row.innerHTML = `
+            <div class="server-info">
+                <h3 class="server-name">${escapeHtml(server.name)}</h3>
+                <div class="server-details">
+                    <span class="server-status ${server.online ? 'online' : 'offline'}">
+                        ${server.online ? '🟢' : '🔴'} ${server.online ? 'En ligne' : 'Hors ligne'}
+                    </span>
+                    <span class="server-players">
+                        👥 ${parseInt(server.players) || 0}/${parseInt(server.maxPlayers) || 0}
+                    </span>
+                    ${server.map && server.map !== 'N/A' ? `<span class="server-map">🗺️ ${escapeHtml(server.map)}</span>` : ''}
+                    ${server.ping > 0 ? `<span class="server-ping">📡 ${parseInt(server.ping) || 0}ms</span>` : ''}
                 </div>
-                <button class="btn-play ${server.online ? '' : 'disabled'}" 
-                        data-ip="${escapeHtml(server.ip)}" 
-                        data-port="${escapeHtml(String(server.port))}" 
-                        data-protocol="${escapeHtml(server.protocol)}"
-                        ${!server.online ? 'disabled' : ''}>
-                    <i class="fas fa-play"></i> 
-                    ${server.online ? 'Rejoindre' : 'Hors ligne'}
-                </button>
-            `;
+            </div>
+            <button class="btn-play ${server.online ? '' : 'disabled'}"
+                    data-ip="${escapeHtml(server.ip || '')}"
+                    data-port="${escapeHtml(String(server.port || ''))}"
+                    data-protocol="${escapeHtml(server.protocol || '')}"
+                    ${!server.online ? 'disabled' : ''}>
+                <i class="fas fa-play"></i>
+                ${server.online ? 'Rejoindre' : 'Hors ligne'}
+            </button>
+        `;
 
-            newStatusContainer.appendChild(serverElement);
-        });
-
-        const totalPlayers = servers.reduce((sum, server) => sum + server.players, 0);
-        const headerPlayerCount = tabContent.querySelector('.players-online .count');
-        if (headerPlayerCount) {
-            headerPlayerCount.textContent = totalPlayers;
+        // Setup bouton uniquement si serveur en ligne
+        if (server.online) {
+            const btn = row.querySelector('.btn-play');
+            if (btn) this._setupPlayButton(btn);
         }
 
-        requestAnimationFrame(() => {
-            statusContainer.classList.add('updating');
+        // Mise à jour du compteur total de joueurs
+        this._updatePlayerCount(gameType);
+    }
 
-            setTimeout(() => {
-                statusContainer.innerHTML = newStatusContainer.innerHTML;
-                statusContainer.classList.remove('updating');
-                this.setupPlayButtons();
-            }, 300);
+    _updatePlayerCount(gameType) {
+        const tabContent = document.getElementById(gameType);
+        if (!tabContent) return;
+        let total = 0;
+        tabContent.querySelectorAll('.server-item:not(.checking)').forEach(row => {
+            const playersText = row.querySelector('.server-players')?.textContent || '';
+            const match = playersText.match(/(\d+)\s*\//);
+            if (match) total += parseInt(match[1]) || 0;
         });
+        const counter = tabContent.querySelector('.players-online .count');
+        if (counter) counter.textContent = total;
     }
 
     setupPlayButtons() {
-        document.querySelectorAll('.btn-play:not(.disabled)').forEach(button => {
-            button.addEventListener('click', async () => {
-                const ip = button.getAttribute('data-ip');
-                const port = button.getAttribute('data-port');
-                const protocol = button.getAttribute('data-protocol');
+        document.querySelectorAll('.btn-play:not(.disabled)').forEach(btn => this._setupPlayButton(btn));
+    }
 
-                button.disabled = true;
-                button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connexion...';
+    _setupPlayButton(button) {
+        // onclick remplace automatiquement tout handler précédent — pas de doublons
+        button.onclick = async () => {
+            const ip = button.getAttribute('data-ip');
+            const port = button.getAttribute('data-port');
+            const protocol = button.getAttribute('data-protocol');
 
-                const result = await window.electronAPI.connectToServer({ ip, port, protocol });
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connexion...';
 
-                if (result && result.success) {
-                    button.innerHTML = '<i class="fas fa-check"></i> Connecté !';
-                    setTimeout(() => {
-                        button.disabled = false;
-                        button.innerHTML = '<i class="fas fa-play"></i> Rejoindre';
-                    }, 3000);
-                } else {
-                    button.innerHTML = '<i class="fas fa-times"></i> Erreur';
-                    setTimeout(() => {
-                        button.disabled = false;
-                        button.innerHTML = '<i class="fas fa-play"></i> Rejoindre';
-                    }, 2000);
-                }
-            });
-        });
+            const result = await window.electronAPI.connectToServer({ ip, port, protocol });
+
+            if (result && result.success) {
+                button.innerHTML = '<i class="fas fa-check"></i> Connecté !';
+                setTimeout(() => {
+                    button.disabled = false;
+                    button.innerHTML = '<i class="fas fa-play"></i> Rejoindre';
+                }, 3000);
+            } else {
+                button.innerHTML = '<i class="fas fa-times"></i> Erreur';
+                setTimeout(() => {
+                    button.disabled = false;
+                    button.innerHTML = '<i class="fas fa-play"></i> Rejoindre';
+                }, 2000);
+            }
+        };
     }
 
     async updateNews() {

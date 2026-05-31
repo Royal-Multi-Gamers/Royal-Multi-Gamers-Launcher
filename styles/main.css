@@ -223,6 +223,20 @@ body.initializing {
     gap: 10px;
 }
 
+.server-item.checking {
+    opacity: 0.6;
+}
+
+.server-item.checking .btn-play {
+    background-color: var(--background-light);
+    color: var(--text-muted, #888);
+    cursor: not-allowed;
+}
+
+.server-status.checking {
+    color: var(--text-muted, #888);
+}
+
 .server-item {
     background-color: var(--background-light);
     border-radius: 8px;
