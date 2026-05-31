@@ -1,6 +1,6 @@
 {
   "name": "royal-multi-gamers-launcher",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Royal Multi Gamers Launcher - Association sous loi 1901",
   "main": "main.js",
   "scripts": {
@@ -47,7 +47,9 @@
         }
       ],
       "icon": "assets/icon.ico",
-      "publisherName": "Royal Multi Gamers Launcher",
+      "signtoolOptions": {
+        "publisherName": "Royal Multi Gamers Launcher"
+      },
       "requestedExecutionLevel": "asInvoker",
       "artifactName": "${productName}-${version}-${arch}.${ext}"
     },
