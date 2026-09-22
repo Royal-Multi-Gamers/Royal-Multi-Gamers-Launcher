@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { TabPage } from "@/components/TabPage";
+import { UpdateOverlay } from "@/components/UpdateOverlay";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/hooks/use-theme";
 import { useLauncherConfig } from "@/hooks/use-launcher-config";
@@ -53,6 +54,7 @@ function AppContent() {
         news={news[activeTab.id]}
         totalPlayersAllGames={totalPlayersAllGames}
       />
+      <UpdateOverlay />
     </AppShell>
   );
 }

@@ -33,6 +33,7 @@
     "targets": [
       "nsis"
     ],
+    "createUpdaterArtifacts": true,
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",
@@ -40,5 +41,13 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ]
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDcxQkY0RDQ2ODkwNEZEMTAKUldRUS9RU0pSazIvY1FFanlCdXVycnhyOEM5UGdPcllPeEFENW44Z0o3T0o4RzZRaCtucXp5WXMK",
+      "endpoints": [
+        "https://github.com/Royal-Multi-Gamers/Royal-Multi-Gamers-Launcher/releases/latest/download/latest.json"
+      ]
+    }
   }
 }

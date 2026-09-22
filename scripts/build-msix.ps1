@@ -25,10 +25,12 @@ $exeName = "royal-multi-gamers-launcher.exe"
 if (-not $SkipBuild) {
     Push-Location $root
     try {
+        $env:VITE_STORE_BUILD = "1"
         pnpm tauri build
         if ($LASTEXITCODE -ne 0) { throw "pnpm tauri build a echoue (code $LASTEXITCODE)" }
     }
     finally {
+        Remove-Item Env:\VITE_STORE_BUILD -ErrorAction SilentlyContinue
         Pop-Location
     }
 }

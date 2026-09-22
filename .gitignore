@@ -16,6 +16,9 @@ dist-ssr
 .vscode/*
 !.vscode/extensions.json
 .idea
+
+# Tauri updater signing key (keep secret, never commit)
+src-tauri/updater.key
 .DS_Store
 *.suo
 *.ntvs*
