@@ -5,6 +5,10 @@ on:
     tags:
       - "[0-9]+.[0-9]+.[0-9]+"
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Version (x.y.z)"
+        required: true
 
 concurrency:
   group: release-${{ github.ref }}
@@ -41,7 +45,7 @@ jobs:
 
       - name: Sync version from tag
         env:
-          REF_NAME: ${{ github.ref_name }}
+          REF_NAME: ${{ github.event.inputs.version || github.ref_name }}
         run: node scripts/set-version.mjs "$REF_NAME"
 
       - uses: tauri-apps/tauri-action@v0
@@ -52,8 +56,8 @@ jobs:
           RUSTC_WRAPPER: sccache
           SCCACHE_GHA_ENABLED: "true"
         with:
-          tagName: ${{ github.ref_name }}
-          releaseName: "Royal Multi Gamers Launcher ${{ github.ref_name }}"
+          tagName: ${{ github.event.inputs.version || github.ref_name }}
+          releaseName: "Royal Multi Gamers Launcher ${{ github.event.inputs.version || github.ref_name }}"
           releaseBody: "See the assets to download and install this version."
           releaseDraft: true
           prerelease: false
@@ -61,7 +65,7 @@ jobs:
       - name: Commit version bump to main
         shell: bash
         env:
-          REF_NAME: ${{ github.ref_name }}
+          REF_NAME: ${{ github.event.inputs.version || github.ref_name }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -70,6 +74,6 @@ jobs:
           node scripts/set-version.mjs "$REF_NAME"
           if ! git diff --quiet; then
             git add package.json src-tauri/tauri.conf.json src-tauri/Cargo.toml
-            git commit -m "chore: bump version to ${{ github.ref_name }}"
+            git commit -m "chore: bump version to ${{ github.event.inputs.version || github.ref_name }}"
             git push origin main
           fi
