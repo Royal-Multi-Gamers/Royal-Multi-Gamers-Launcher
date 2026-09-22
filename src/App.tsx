@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { AppShell } from "@/components/layout/AppShell";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { TabPage } from "@/components/TabPage";
+import { StoreBuildNoticeButton } from "@/components/StoreBuildNoticeDialog";
 import { UpdateOverlay } from "@/components/UpdateOverlay";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/hooks/use-theme";
@@ -55,6 +56,7 @@ function AppContent() {
         totalPlayersAllGames={totalPlayersAllGames}
       />
       <UpdateOverlay />
+      <StoreBuildNoticeButton />
     </AppShell>
   );
 }

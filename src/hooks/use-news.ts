@@ -38,9 +38,7 @@ export function useNews(tabs: TabConfig[] | null): NewsByTab {
             }
 
             const articles = data.articles ?? [];
-            if (articles.length > 0 && articles[0].date !== undefined) {
-              articles.sort((a, b) => new Date(b.date ?? 0).getTime() - new Date(a.date ?? 0).getTime());
-            }
+            articles.sort((a, b) => new Date(b.date ?? 0).getTime() - new Date(a.date ?? 0).getTime());
 
             return [tab.id, articles.length > 0 ? articles : fallbackFor(tab.id)];
           } catch (error) {

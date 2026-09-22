@@ -45,7 +45,3 @@ export interface NewsArticle {
   author?: string;
   image?: string;
 }
-
-export interface NewsData {
-  articles: NewsArticle[];
-}

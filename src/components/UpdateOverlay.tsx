@@ -1,12 +1,33 @@
-import { DownloadCloud, Loader2 } from "lucide-react";
+import { DownloadCloud } from "lucide-react";
+import { WebviewWindow } from "@tauri-apps/api/webviewWindow";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useUpdater } from "@/hooks/use-updater";
 
-export function UpdateOverlay() {
-  const { status, progress, version, installUpdate } = useUpdater();
+async function openUpdaterWindow() {
+  const updaterWindow = new WebviewWindow("updater", {
+    url: "index.html?updater",
+    title: "Royal Multi Gamers Launcher - Mise à jour",
+    width: 420,
+    height: 280,
+    resizable: false,
+    decorations: false,
+    center: true,
+    alwaysOnTop: true,
+    visible: false,
+    backgroundColor: "#08090b",
+  });
 
-  if (status === "idle" || status === "checking" || status === "error") return null;
+  updaterWindow.once("tauri://created", () => {
+    getCurrentWindow().close();
+  });
+}
+
+export function UpdateOverlay() {
+  const { status, version } = useUpdater();
+
+  if (status !== "available") return null;
 
   return (
     <div className="fixed bottom-4 right-4 z-50 w-80">
@@ -21,16 +42,9 @@ export function UpdateOverlay() {
           <p className="text-sm text-muted-foreground">
             Version {version} prête à être installée.
           </p>
-          {status === "downloading" ? (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Loader2 className="size-4 animate-spin" />
-              Téléchargement... {progress}%
-            </div>
-          ) : (
-            <Button onClick={installUpdate} className="w-full">
-              Installer et redémarrer
-            </Button>
-          )}
+          <Button onClick={openUpdaterWindow} className="w-full">
+            Installer et redémarrer
+          </Button>
         </CardContent>
       </Card>
     </div>

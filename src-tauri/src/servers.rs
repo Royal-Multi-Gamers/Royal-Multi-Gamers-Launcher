@@ -2,7 +2,7 @@ use gamedig::{query_with_timeout, TimeoutSettings, GAMES};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::net::IpAddr;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 use tauri::{AppHandle, Emitter};
 
 /// A server entry as defined in the remote launcher config.json
@@ -99,8 +99,10 @@ fn query_gamedig(server: &ServerConfig, timeout_secs: u64) -> ServerStatus {
     )
     .ok();
 
+    let started = Instant::now();
     match query_with_timeout(game, &ip, port, timeout) {
         Ok(response) => {
+            let ping = started.elapsed().as_millis().min(u128::from(u32::MAX)) as u32;
             let json = response.as_json();
             ServerStatus {
                 config_key: config_key(server),
@@ -118,7 +120,7 @@ fn query_gamedig(server: &ServerConfig, timeout_secs: u64) -> ServerStatus {
                     .map
                     .map(|s| s.to_string())
                     .unwrap_or_else(|| "Inconnu".to_string()),
-                ping: 0,
+                ping,
             }
         }
         Err(_) => fallback,
@@ -232,9 +234,25 @@ pub async fn check_servers(
     let _ = app.emit("server-check-done", ());
 }
 
+/// Hosts the launcher is allowed to fetch from. Keeps `fetch_json` from
+/// being usable as a general-purpose SSRF proxy if it's ever reachable
+/// from an unexpected script context.
+const ALLOWED_FETCH_HOSTS: &[&str] = &["fastdl.clan-rmg.com"];
+
 /// Generic JSON/text fetch used for the remote config and news feeds.
 #[tauri::command]
 pub async fn fetch_json(url: String) -> Result<String, String> {
+    let parsed = reqwest::Url::parse(&url).map_err(|_| "invalid url".to_string())?;
+
+    if parsed.scheme() != "https" {
+        return Err("only https urls are allowed".to_string());
+    }
+
+    match parsed.host_str() {
+        Some(host) if ALLOWED_FETCH_HOSTS.contains(&host) => {}
+        _ => return Err("host not allowed".to_string()),
+    }
+
     let client = reqwest::Client::builder()
         .timeout(Duration::from_secs(8))
         .user_agent(USER_AGENT)

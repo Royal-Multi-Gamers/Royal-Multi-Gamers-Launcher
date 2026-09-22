@@ -5,6 +5,8 @@ export const NEWS_BASE_URL = "https://fastdl.clan-rmg.com/launcher/news/";
 
 export const DISCORD_URL = "https://discord.gg/tqPtgyk6yT";
 export const WEBSITE_URL = "https://clan-rmg.com";
+export const GITHUB_RELEASES_URL =
+  "https://github.com/Royal-Multi-Gamers/Royal-Multi-Gamers-Launcher/releases";
 
 export const SERVER_STATUS_INTERVAL = 30000;
 
