@@ -48,6 +48,7 @@ jobs:
           prerelease: false
 
       - name: Commit version bump to main
+        shell: bash
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
