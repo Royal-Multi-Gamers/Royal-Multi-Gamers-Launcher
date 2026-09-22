@@ -44,6 +44,7 @@ jobs:
         run: pnpm install --frozen-lockfile --prefer-offline
 
       - name: Sync version from tag
+        shell: bash
         env:
           REF_NAME: ${{ github.event.inputs.version || github.ref_name }}
         run: node scripts/set-version.mjs "$REF_NAME"
