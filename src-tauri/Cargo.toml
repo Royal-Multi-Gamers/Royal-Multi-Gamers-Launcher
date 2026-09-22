@@ -1,6 +1,6 @@
 [package]
 name = "royal-multi-gamers-launcher"
-version = "1.0.7"
+version = "1.0.9"
 description = "Royal Multi Gamers Launcher"
 authors = ["Royal Multi Gamers"]
 edition = "2024"
