@@ -3022,7 +3022,7 @@ dependencies = [
 
 [[package]]
 name = "royal-multi-gamers-launcher"
-version = "1.0.10"
+version = "1.0.11"
 dependencies = [
  "gamedig",
  "reqwest",
