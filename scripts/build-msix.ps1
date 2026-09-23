@@ -23,14 +23,23 @@ $outputDir = Join-Path $tauriDir "target\msix\output"
 $exeName = "royal-multi-gamers-launcher.exe"
 
 if (-not $SkipBuild) {
+    $keyPath = Join-Path $tauriDir "updater.key"
+    if (-not (Test-Path $keyPath)) {
+        throw "Cle de signature introuvable: $keyPath. Necessaire meme pour le build MSIX (tauri build signe toujours quand une pubkey updater est configuree)."
+    }
+
     Push-Location $root
     try {
         $env:VITE_STORE_BUILD = "1"
+        $env:TAURI_SIGNING_PRIVATE_KEY = Get-Content -Raw $keyPath
+        $env:TAURI_SIGNING_PRIVATE_KEY_PASSWORD = ""
         pnpm tauri build
         if ($LASTEXITCODE -ne 0) { throw "pnpm tauri build a echoue (code $LASTEXITCODE)" }
     }
     finally {
         Remove-Item Env:\VITE_STORE_BUILD -ErrorAction SilentlyContinue
+        Remove-Item Env:\TAURI_SIGNING_PRIVATE_KEY -ErrorAction SilentlyContinue
+        Remove-Item Env:\TAURI_SIGNING_PRIVATE_KEY_PASSWORD -ErrorAction SilentlyContinue
         Pop-Location
     }
 }
@@ -53,6 +62,35 @@ Copy-Item $exeSource (Join-Path $stagingDir "Royal Multi Gamers Launcher.exe")
 $assets = @("Square44x44Logo.png", "Square150x150Logo.png", "StoreLogo.png")
 foreach ($asset in $assets) {
     Copy-Item (Join-Path $iconsDir $asset) (Join-Path $stagingDir "Assets\$asset")
+}
+
+# ------------------------------------------------------------
+# Assets "unplated" pour la barre des taches / liste des taches
+# Sans ces variantes, Windows dessine une plaque (BackgroundColor)
+# derriere le logo dans la barre des taches, meme si le PNG est
+# transparent et que le manifest declare BackgroundColor=transparent.
+# ------------------------------------------------------------
+Add-Type -AssemblyName System.Drawing
+
+function New-ResizedPng {
+    param([string]$SourcePath, [string]$DestPath, [int]$Size)
+    $src = [System.Drawing.Image]::FromFile($SourcePath)
+    $bmp = New-Object System.Drawing.Bitmap $Size, $Size
+    $graphics = [System.Drawing.Graphics]::FromImage($bmp)
+    $graphics.Clear([System.Drawing.Color]::Transparent)
+    $graphics.InterpolationMode = [System.Drawing.Drawing2D.InterpolationMode]::HighQualityBicubic
+    $graphics.DrawImage($src, 0, 0, $Size, $Size)
+    $graphics.Dispose()
+    $bmp.Save($DestPath, [System.Drawing.Imaging.ImageFormat]::Png)
+    $bmp.Dispose()
+    $src.Dispose()
+}
+
+$sourceIcon = Join-Path $iconsDir "icon.png"
+$unplatedSizes = @(16, 24, 32, 40, 48, 64, 96, 256)
+foreach ($size in $unplatedSizes) {
+    $dest = Join-Path $stagingDir "Assets\Square44x44Logo.targetsize-${size}_altform-unplated.png"
+    New-ResizedPng -SourcePath $sourceIcon -DestPath $dest -Size $size
 }
 
 $manifest = (Get-Content $manifestTemplate -Raw) -replace "__VERSION__", $msixVersion
