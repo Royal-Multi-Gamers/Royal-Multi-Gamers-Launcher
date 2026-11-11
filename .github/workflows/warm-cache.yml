@@ -1,0 +1,40 @@
+# Tag runs can only restore caches from their own ref or from main.
+# This job builds on main so release tags start with a warm Rust cache.
+name: Warm cache
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "src-tauri/**"
+      - ".github/workflows/**"
+  workflow_dispatch:
+
+concurrency:
+  group: warm-cache
+  cancel-in-progress: true
+
+jobs:
+  warm:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: src-tauri
+          shared-key: tauri-release
+
+      - run: pnpm install --frozen-lockfile --prefer-offline
+
+      # Same compilation as tauri-action, without bundling/signing.
+      - run: pnpm tauri build --no-bundle
