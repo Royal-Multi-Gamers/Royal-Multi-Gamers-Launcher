@@ -1,0 +1,14 @@
+{
+  "articles": [
+    {
+      "id": 1,
+      "title": "Serveur BattleBit RMG disponible !",
+      "description": "Notre serveur [FR]Clan-RmG.com est en ligne, tous modes de jeu.",
+      "content": "Notre serveur BattleBit Remastered « [FR]Clan-RmG.com | ALL GAMEMODES » est en ligne !\n\nRejoignez-nous pour des batailles à grande échelle, tous modes de jeu confondus.\n\nUn souci sur le serveur ? Signalez-le sur Discord.",
+      "date": "2024-06-17T10:00:00Z",
+      "author": "Équipe RMG",
+      "image": "https://fastdl.clan-rmg.com/launcher/images/bbr.jpeg",
+      "link": "https://discord.gg/tqPtgyk6yT"
+    }
+  ]
+}

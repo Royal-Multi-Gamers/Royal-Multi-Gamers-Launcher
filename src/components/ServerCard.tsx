@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Check, Loader2, MapPin, Play, Signal, Users, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import { connectToServer } from "@/lib/connect";
 import { serverKey } from "@/lib/server";
 import { cn } from "@/lib/utils";
@@ -31,10 +30,10 @@ export function ServerCard({ config, status }: ServerCardProps) {
   }
 
   return (
-    <Card size="sm">
-      <CardContent className="flex flex-wrap items-center justify-between gap-4">
-        <div className="min-w-0 flex-1">
-          <h3 className="truncate font-semibold">{name}</h3>
+    <div className="rounded-xl border border-border/60 bg-background/40 p-3">
+      <div className="flex flex-col gap-2.5">
+        <div className="min-w-0">
+          <h3 className="truncate text-sm font-semibold">{name}</h3>
           <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             <Badge
               variant="outline"
@@ -70,7 +69,7 @@ export function ServerCard({ config, status }: ServerCardProps) {
           size="sm"
           disabled={checking || !online || connectState !== "idle"}
           onClick={handlePlay}
-          className="min-w-32"
+          className="w-full"
         >
           {connectState === "connecting" ? (
             <Loader2 className="animate-spin" />
@@ -93,7 +92,7 @@ export function ServerCard({ config, status }: ServerCardProps) {
                     ? "Rejoindre"
                     : "Hors ligne"}
         </Button>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }

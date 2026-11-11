@@ -13,6 +13,18 @@ export interface TabConfig {
   icon: string;
   servers: ServerConfig[];
   isDefault?: boolean;
+  background?: TabBackground;
+}
+
+export interface TabBackground {
+  /** https URL of the image shown behind the whole window for this tab. */
+  image: string;
+  /** Blur radius in px (0-40, default 12). */
+  blur?: number;
+  /** Brightness 0-1, lower = darker (default 0.45). */
+  brightness?: number;
+  /** Saturation 0-2 (default 1.1). */
+  saturate?: number;
 }
 
 export interface LauncherConfig {
@@ -44,4 +56,6 @@ export interface NewsArticle {
   date?: string;
   author?: string;
   image?: string;
+  /** Optional "read more" URL; only https links are opened. */
+  link?: string;
 }

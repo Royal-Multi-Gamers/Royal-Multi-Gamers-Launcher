@@ -1,0 +1,23 @@
+{
+  "articles": [
+    {
+      "id": 3,
+      "title": "Nouveau design du launcher",
+      "description": "Navigation en haut, fonds par jeu, actualités cliquables : découvrez la nouvelle interface.",
+      "content": "Le launcher fait peau neuve !\n\nAu programme :\n• une navigation horizontale plus claire\n• une image de fond propre à chaque jeu\n• des actualités cliquables qui s'ouvrent en grand\n\nMerci à tous pour vos retours, continuez à nous dire ce que vous en pensez sur Discord.",
+      "date": "2026-11-11T18:00:00Z",
+      "author": "Équipe RMG",
+      "image": "https://fastdl.clan-rmg.com/launcher/images/news-3.jpg",
+      "link": "https://clan-rmg.com"
+    },
+    {
+      "id": 2,
+      "title": "Rejoignez-nous sur Discord",
+      "description": "Toute la vie du clan se passe sur notre serveur Discord.",
+      "content": "Annonces, événements, recrutement, entraide : tout se passe sur Discord.\n\nPassez dire bonjour !",
+      "date": "2026-10-01T12:00:00Z",
+      "author": "Équipe RMG",
+      "link": "https://discord.gg/tqPtgyk6yT"
+    }
+  ]
+}

@@ -183,3 +183,19 @@
         transition-duration: 0.01ms !important;
     }
 }
+
+/* Frosted glass surface used by the nav bar, server panel and news cards */
+@utility glass {
+    border: 1px solid color-mix(in oklch, var(--foreground) 10%, transparent);
+    background: color-mix(in oklch, var(--card) 60%, transparent);
+    backdrop-filter: blur(20px) saturate(140%);
+    box-shadow: 0 8px 32px rgb(0 0 0 / 0.25);
+}
+
+/* Hero backdrop when no news image is available */
+.hero-fallback {
+    background:
+        radial-gradient(ellipse 60% 80% at 75% 30%, color-mix(in oklch, var(--primary) 45%, transparent) 0%, transparent 60%),
+        radial-gradient(ellipse 50% 60% at 15% 90%, color-mix(in oklch, var(--primary) 25%, transparent) 0%, transparent 60%),
+        var(--card);
+}
