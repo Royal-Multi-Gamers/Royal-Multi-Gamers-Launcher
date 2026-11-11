@@ -1,29 +1,23 @@
-import {
-  Crosshair,
-  Gamepad2,
-  Globe,
-  Home,
-  Leaf,
-  Plane,
-  Swords,
-  Target,
-  Wifi,
-  type LucideIcon,
-} from "lucide-react";
+import { Gamepad2, icons, type LucideIcon } from "lucide-react";
 
-/** Maps the Font Awesome icon names used in the remote config to lucide icons. */
-const ICON_MAP: Record<string, LucideIcon> = {
-  home: Home,
-  crosshairs: Crosshair,
-  bullseye: Target,
-  leaf: Leaf,
-  plane: Plane,
-  gun: Swords,
-  wifi: Wifi,
-  globe: Globe,
-  gamepad: Gamepad2,
+/** Font Awesome names already used in the remote config, mapped to their lucide equivalent. */
+const ALIASES: Record<string, string> = {
+  home: "house",
+  crosshairs: "crosshair",
+  bullseye: "target",
+  gun: "swords",
+  gamepad: "gamepad-2",
 };
 
+/** "gamepad-2" -> "Gamepad2" (lucide.dev names are kebab-case, exports are PascalCase). */
+const toPascalCase = (name: string) =>
+  name
+    .split("-")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join("");
+
+/** Accepts any icon name from https://lucide.dev/icons, falls back to a gamepad. */
 export function getTabIcon(icon: string): LucideIcon {
-  return ICON_MAP[icon] ?? Gamepad2;
+  const name = toPascalCase(ALIASES[icon] ?? icon);
+  return icons[name as keyof typeof icons] ?? Gamepad2;
 }
