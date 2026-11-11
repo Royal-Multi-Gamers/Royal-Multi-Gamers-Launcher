@@ -50,11 +50,14 @@ export function TabPage({ tab, statuses, news, totalPlayersAllGames }: TabPagePr
           </div>
 
           {hasServers && (
-            <div className="glass flex max-h-[420px] flex-col gap-2 overflow-y-auto rounded-2xl p-4">
+            <div className="glass flex max-h-[420px] flex-col gap-2 rounded-2xl p-4 pr-2">
               <h2 className="px-1 pb-1 text-sm font-bold">Serveurs</h2>
-              {tab.servers.map((server) => (
-                <ServerCard key={serverKey(server)} config={server} status={statuses?.[serverKey(server)]} />
-              ))}
+              {/* Scroll inside padding so scrollbar stays clear of rounded corners. */}
+              <div className="flex min-h-0 flex-col gap-2 overflow-y-auto pr-2">
+                {tab.servers.map((server) => (
+                  <ServerCard key={serverKey(server)} config={server} status={statuses?.[serverKey(server)]} />
+                ))}
+              </div>
             </div>
           )}
         </div>

@@ -102,6 +102,16 @@ if (-not $makeappx) {
     throw "makeappx.exe introuvable. Installe le composant 'Outils de signature et d'empaquetage MSIX' du Windows SDK."
 }
 
+# resources.pri est obligatoire : sans lui Windows ignore les fichiers
+# qualifies (targetsize/altform-unplated) et retombe sur le logo avec plaque.
+$makepri = Join-Path $makeappx.DirectoryName "makepri.exe"
+if (-not (Test-Path $makepri)) { throw "makepri.exe introuvable a cote de makeappx.exe." }
+$priConfig = Join-Path $tauriDir "target\msix\priconfig.xml"
+& $makepri createconfig /cf $priConfig /dq fr-FR /pv 10.0.0 /o
+if ($LASTEXITCODE -ne 0) { throw "makepri createconfig a echoue (code $LASTEXITCODE)" }
+& $makepri new /pr $stagingDir /cf $priConfig /mn (Join-Path $stagingDir "AppxManifest.xml") /of (Join-Path $stagingDir "resources.pri") /o
+if ($LASTEXITCODE -ne 0) { throw "makepri new a echoue (code $LASTEXITCODE)" }
+
 if (-not (Test-Path $outputDir)) { New-Item -ItemType Directory -Path $outputDir -Force | Out-Null }
 $msixPath = Join-Path $outputDir "RoyalMultiGamersLauncher-$version-x64.msix"
 if (Test-Path $msixPath) { Remove-Item $msixPath -Force }
